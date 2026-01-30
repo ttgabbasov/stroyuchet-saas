@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Смета для каменного дома ИЖС</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Онлайн-калькулятор</p>
+          <h1>Смета для каменного дома ИЖС</h1>
+          <p class="subtitle">
+            Рассчитайте ориентировочную стоимость строительства с разбивкой по ключевым
+            разделам. Настройте параметры проекта и получите итог в несколько кликов.
+          </p>
+        </div>
+        <div class="hero-card">
+          <h2>Итоговая стоимость</h2>
+          <p class="total" id="total-cost">—</p>
+          <p class="total-note">Расчет носит оценочный характер.</p>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="card">
+          <h2>Параметры дома</h2>
+          <form id="estimate-form">
+            <div class="grid">
+              <label>
+                Площадь дома, м²
+                <input type="number" name="area" value="180" min="40" step="1" required />
+              </label>
+              <label>
+                Этажность
+                <select name="floors">
+                  <option value="1">1 этаж</option>
+                  <option value="2" selected>2 этажа</option>
+                  <option value="3">3 этажа</option>
+                </select>
+              </label>
+              <label>
+                Высота этажа, м
+                <input type="number" name="floorHeight" value="2.9" min="2.5" step="0.1" required />
+              </label>
+              <label>
+                Тип камня
+                <select name="stoneType">
+                  <option value="gas">Газобетон</option>
+                  <option value="brick" selected>Кирпич</option>
+                  <option value="ceramic">Керамический блок</option>
+                  <option value="silicate">Силикатный блок</option>
+                </select>
+              </label>
+              <label>
+                Толщина стен, мм
+                <input type="number" name="wallThickness" value="400" min="300" max="600" step="10" />
+              </label>
+              <label>
+                Фундамент
+                <select name="foundation">
+                  <option value="strip">Ленточный</option>
+                  <option value="slab" selected>Плита</option>
+                  <option value="pile">Свайно-ростверковый</option>
+                </select>
+              </label>
+              <label>
+                Кровля
+                <select name="roof">
+                  <option value="metal">Металлочерепица</option>
+                  <option value="soft" selected>Мягкая кровля</option>
+                  <option value="tile">Керамическая черепица</option>
+                </select>
+              </label>
+              <label>
+                Инженерия
+                <select name="engineering">
+                  <option value="basic">Базовый пакет</option>
+                  <option value="standard" selected>Стандарт</option>
+                  <option value="premium">Премиум</option>
+                </select>
+              </label>
+              <label>
+                Отделка
+                <select name="finish">
+                  <option value="rough" selected>Черновая</option>
+                  <option value="pre">Предчистовая</option>
+                  <option value="full">Чистовая</option>
+                </select>
+              </label>
+              <label>
+                Запас на непредвиденные, %
+                <input type="number" name="contingency" value="7" min="0" max="20" step="1" />
+              </label>
+            </div>
+            <button type="submit">Рассчитать смету</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Структура сметы</h2>
+          <div class="breakdown" id="breakdown"></div>
+        </section>
+
+        <section class="card tips">
+          <h2>Подсказки для точной сметы</h2>
+          <ul>
+            <li>Уточните площадь по рабочему проекту — это влияет на все разделы бюджета.</li>
+            <li>Включите участок и коммуникации в отдельную смету, если требуется подвод.</li>
+            <li>Проверьте комплектацию инженерии: отопление, водоснабжение, вентиляция, слаботочка.</li>
+            <li>Добавляйте резерв 5–10% на колебания цен материалов и логистики.</li>
+          </ul>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>© Калькулятор смет для каменных домов ИЖС</p>
+      </footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+  TCP    0.0.0.0:4000           0.0.0.0:0              LISTENING       25172
+  TCP    [::]:4000              [::]:0                 LISTENING       25172
+  TCP    [::1]:4000             [::1]:57381            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:57386            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:57388            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:57897            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:57898            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:57899            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:62090            TIME_WAIT       0
+  TCP    [::1]:4000             [::1]:62092            TIME_WAIT       0
+  TCP    [::1]:57465            [::1]:4000             TIME_WAIT       0
+  TCP    [::1]:57893            [::1]:4000             TIME_WAIT       0
+  TCP    [::1]:60800            [::1]:4000             TIME_WAIT       0

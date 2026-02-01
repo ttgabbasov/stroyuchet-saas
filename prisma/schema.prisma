@@ -1,0 +1,433 @@
+// ============================================
+// СтройУчёт SaaS - Database Schema v3
+// ============================================
+// Изменения v3:
+// - ADVANCE (Подотчёт) - автоматическое создание кассы
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum Role {
+  OWNER
+  PARTNER
+  FOREMAN
+  ACCOUNTANT
+  VIEWER
+}
+
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+// Обновлённые типы транзакций
+enum TransactionType {
+  INCOME    // Доход проекта (от заказчика, аванс, etc.)
+  EXPENSE   // Расход проекта (материалы, услуги, накладные)
+  PAYOUT    // Выплата сотруднику (не влияет на баланс проекта)
+  INTERNAL  // Перевод между кассами (не влияет на баланс проекта)
+  ADVANCE   // Подотчёт сотруднику (автосоздание кассы)
+}
+
+enum ReceiptStatus {
+  RECEIPT     // Есть чек
+  NO_RECEIPT  // Без чека
+  PENDING     // Чек ожидается
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
+}
+
+// ============================================
+// CORE ENTITIES
+// ============================================
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  plan      Plan     @default(FREE)
+  
+  // Настройки тарифа (переопределяют дефолты)
+  maxProjects     Int?
+  maxUsers        Int?
+  maxMoneySources Int?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  users        User[]
+  projects     Project[]
+  moneySources MoneySource[]
+  invites      Invite[]
+  
+  @@map("companies")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role     @default(VIEWER)
+  
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Refresh tokens для JWT
+  refreshToken String?
+  
+  telegramId   String?  @unique
+  telegramLinkToken String? @unique
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  transactions      Transaction[]  @relation("CreatedBy")
+  projectAccess     ProjectAccess[]
+  auditLogs         AuditLog[]
+  
+  // MoneySource relations
+  ownedMoneySources MoneySource[]  @relation("MoneySourceOwner")
+  sharedMoneySources MoneySourceAccess[]
+  
+  // Получатель выплат (PAYOUT) и подотчёта (ADVANCE)
+  receivedPayouts   Transaction[]  @relation("PayoutRecipient")
+  
+  @@index([companyId])
+  @@index([email])
+  @@map("users")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  address     String?
+  status      ProjectStatus @default(ACTIVE)
+  
+  // Опциональный бюджет (в копейках)
+  budgetCents Int?
+  
+  companyId   String
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  transactions Transaction[]
+  accessList   ProjectAccess[]
+  estimates    Estimate[]
+  
+  @@index([companyId])
+  @@index([status])
+  @@map("projects")
+}
+
+// Доступ пользователей к объектам (для Foreman)
+model ProjectAccess {
+  id        String   @id @default(cuid())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, projectId])
+  @@map("project_access")
+}
+
+// ============================================
+// MONEY SOURCE (КАССЫ)
+// ============================================
+
+model MoneySource {
+  id          String   @id @default(cuid())
+  name        String   // "Касса Тимура", "Подотчёт: Иван", "Банк"
+  description String?
+  
+  // Владелец кассы
+  ownerId     String
+  owner       User     @relation("MoneySourceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  // Флаг основной кассы компании (видна Owner всегда)
+  isCompanyMain Boolean @default(false)
+  
+  // Флаг подотчётной кассы (создана автоматически через ADVANCE)
+  isAdvance     Boolean @default(false)
+  
+  // Активна ли касса
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  sharedWith    MoneySourceAccess[]
+  
+  // Транзакции где эта касса — источник
+  transactionsFrom Transaction[] @relation("TransactionFromSource")
+  // Транзакции где эта касса — получатель (для INTERNAL/ADVANCE)
+  transactionsTo   Transaction[] @relation("TransactionToSource")
+  
+  @@index([companyId])
+  @@index([ownerId])
+  @@map("money_sources")
+}
+
+// Доступ к кассам (sharedWith)
+model MoneySourceAccess {
+  id            String      @id @default(cuid())
+  
+  moneySourceId String
+  moneySource   MoneySource @relation(fields: [moneySourceId], references: [id], onDelete: Cascade)
+  
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Права доступа
+  canView       Boolean     @default(true)
+  canSpend      Boolean     @default(false)  // Может тратить из кассы
+  
+  createdAt     DateTime    @default(now())
+  
+  @@unique([moneySourceId, userId])
+  @@index([userId])
+  @@map("money_source_access")
+}
+
+// ============================================
+// FINANCIAL ENTITIES
+// ============================================
+
+model Transaction {
+  id            String          @id @default(cuid())
+  
+  type          TransactionType
+  amountCents   Int             // Всегда положительное число
+  
+  // Категория расхода/прихода
+  categoryId    String
+  category      Category        @relation(fields: [categoryId], references: [id])
+  
+  // Источник денег (касса)
+  moneySourceId String
+  moneySource   MoneySource     @relation("TransactionFromSource", fields: [moneySourceId], references: [id])
+  
+  // Для INTERNAL/ADVANCE: касса-получатель
+  toMoneySourceId String?
+  toMoneySource   MoneySource?  @relation("TransactionToSource", fields: [toMoneySourceId], references: [id])
+  
+  // Для PAYOUT/ADVANCE: получатель
+  payoutUserId  String?
+  payoutUser    User?           @relation("PayoutRecipient", fields: [payoutUserId], references: [id])
+  
+  // Привязка к проекту (опционально)
+  projectId     String?
+  project       Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  comment       String?
+  
+  // Чек
+  receiptUrl    String?         // URL фото чека в S3/storage
+  receiptStatus ReceiptStatus   @default(NO_RECEIPT)
+  
+  // Дата операции (может отличаться от createdAt)
+  date          DateTime        @db.Timestamp
+  
+  createdById   String
+  createdBy     User            @relation("CreatedBy", fields: [createdById], references: [id])
+  
+  // Soft delete
+  deletedAt     DateTime?
+  deletedById   String?
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  @@index([projectId])
+  @@index([moneySourceId])
+  @@index([date])
+  @@index([type])
+  @@index([deletedAt])
+  @@map("transactions")
+}
+
+model Category {
+  id           String          @id @default(cuid())
+  
+  name         String
+  icon         String          // emoji или icon name
+  color        String          // hex color
+  
+  // Какие типы транзакций поддерживает категория
+  allowedTypes TransactionType[]
+  
+  // Группа категорий (Накладные, Материалы, etc.)
+  groupId      String?
+  group        CategoryGroup?  @relation(fields: [groupId], references: [id])
+  
+  // Системные категории нельзя удалять
+  isSystem     Boolean         @default(false)
+  
+  // Кастомные категории привязаны к компании
+  companyId    String?
+  
+  sortOrder    Int             @default(0)
+  
+  createdAt    DateTime        @default(now())
+  
+  transactions Transaction[]
+  
+  @@index([companyId])
+  @@map("categories")
+}
+
+model CategoryGroup {
+  id         String     @id @default(cuid())
+  name       String
+  sortOrder  Int        @default(0)
+  
+  categories Category[]
+  
+  @@map("category_groups")
+}
+
+// ============================================
+// ESTIMATE (СМЕТА)
+// ============================================
+
+model Estimate {
+  id          String   @id @default(cuid())
+  
+  name        String   // Название работы
+  unit        String   // Единица измерения (м², шт, etc.)
+  quantity    Decimal  @db.Decimal(10, 2)
+  priceCents  Int      // Цена за единицу в копейках
+  
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([projectId])
+  @@map("estimates")
+}
+
+// ============================================
+// INVITES & AUTH
+// ============================================
+
+model Invite {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  role      Role     @default(FOREMAN)
+  
+  usedAt    DateTime?
+  usedById  String?
+  
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([code])
+  @@index([companyId])
+  @@map("invites")
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  
+  entity     String      // "transaction", "project", "money_source", etc.
+  entityId   String
+  action     AuditAction
+  
+  // Снимок изменений (JSON)
+  changes    Json?
+  
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  
+  ipAddress  String?
+  userAgent  String?
+  
+  createdAt  DateTime    @default(now())
+  
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================
+// PLAN LIMITS CONFIG
+// ============================================
+
+model PlanConfig {
+  id              String  @id @default(cuid())
+  plan            Plan    @unique
+  
+  maxProjects     Int
+  maxUsers        Int
+  maxMoneySources Int     @default(1)
+  exportEnabled   Boolean @default(false)
+  analyticsEnabled Boolean @default(false)
+  apiEnabled      Boolean @default(false)
+  
+  @@map("plan_configs")
+}
+
+// ============================================
+// HELP & FAQ
+// ============================================
+
+model HelpItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  category  String?  // Группировка (например, "Общее", "Финансы")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("help_items")
+}

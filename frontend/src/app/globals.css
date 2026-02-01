@@ -1,0 +1,219 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   СтройУчёт - Global Styles
+   ============================================ */
+
+@layer base {
+  :root {
+    --background: #f9fafb;
+    --foreground: #111827;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --primary: #2563eb;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+  }
+
+  .dark {
+    --background: #030712;
+    --foreground: #f9fafb;
+    --card: #111827;
+    --card-foreground: #f9fafb;
+    --border: #1f2937;
+    --input: #1f2937;
+    --primary: #3b82f6;
+    --muted: #1f2937;
+    --muted-foreground: #9ca3af;
+    --success: #4ade80;
+    --success-bg: rgba(22, 163, 74, 0.1);
+    --danger: #f87171;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply antialiased transition-colors duration-300;
+  }
+}
+
+@layer components {
+
+  /* Card */
+  .card {
+    background-color: var(--card);
+    border-radius: 0.75rem;
+    /* rounded-xl */
+    border-width: 1px;
+    border-color: var(--border);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    /* shadow-sm */
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 px-4 py-2;
+  }
+
+  .btn-secondary {
+    @apply btn px-4 py-2;
+    background-color: var(--card);
+    color: var(--foreground);
+    border-width: 1px;
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--muted);
+  }
+
+  .btn-danger {
+    @apply btn bg-danger-600 text-white hover:bg-danger-700 px-4 py-2;
+  }
+
+  .btn-ghost {
+    @apply btn px-4 py-2;
+    color: var(--muted-foreground);
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    background-color: var(--muted);
+    color: var(--foreground);
+  }
+
+  /* Input */
+  .input {
+    @apply w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500;
+    background-color: var(--card);
+    border-color: var(--border);
+    color: var(--foreground);
+  }
+
+  .input::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  .input:disabled {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    opacity: 0.5;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge;
+    background-color: #dcfce7;
+    /* bg-success-100 */
+    color: #166534;
+    /* text-success-800 */
+  }
+
+  .dark .badge-success {
+    background-color: rgba(22, 163, 74, 0.2);
+    color: #4ade80;
+  }
+
+  .badge-danger {
+    @apply badge;
+    background-color: #fee2e2;
+    /* bg-danger-100 */
+    color: #991b1b;
+    /* text-danger-800 */
+  }
+
+  .dark .badge-danger {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: #f87171;
+  }
+
+  .badge-warning {
+    @apply badge;
+    background-color: #fef3c7;
+    /* bg-warning-100 */
+    color: #92400e;
+    /* text-warning-800 */
+  }
+
+  .dark .badge-warning {
+    background-color: rgba(217, 119, 6, 0.2);
+    color: #fbbf24;
+  }
+
+  .badge-gray {
+    @apply badge;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+  }
+
+  /* Amount display */
+  .amount-income {
+    color: #16a34a;
+    /* success-600 */
+    font-weight: 500;
+  }
+
+  .dark .amount-income {
+    color: #4ade80;
+    /* success-400 */
+  }
+
+  .amount-expense {
+    color: #dc2626;
+    /* danger-600 */
+    font-weight: 500;
+  }
+
+  .dark .amount-expense {
+    color: #f87171;
+    /* danger-400 */
+  }
+
+  .amount-neutral {
+    color: var(--muted-foreground);
+    font-weight: 500;
+  }
+}
+
+@layer utilities {
+
+  /* Hide scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Safe area padding for mobile */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}

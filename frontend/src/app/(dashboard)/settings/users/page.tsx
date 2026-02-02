@@ -41,6 +41,11 @@ export default function UsersPage() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('Ссылка скопирована!');
+  };
+
   const handleRemove = async (userId: string, userName: string) => {
     if (!confirm(`Вы уверены, что хотите удалить пользователя ${userName}?`)) return;
     try {

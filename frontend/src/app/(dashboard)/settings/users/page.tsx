@@ -84,7 +84,6 @@ export default function UsersPage() {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     leftIcon={<Mail className="w-4 h-4" />}
-                    description="Если указать почту, мы отправим письмо с приглашением автоматически."
                   />
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Роль</label>

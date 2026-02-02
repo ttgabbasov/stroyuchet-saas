@@ -35,7 +35,7 @@ export function EquityReport() {
                             <p className="text-warning-700 dark:text-warning-200 mb-3">
                                 Взаиморасчеты (Equity) предназначены для разделения прибыли и обязательств между несколькими партнерами (50/50).
                             </p>
-                            <Button variant="outline" size="sm" onClick={() => window.location.href = '/settings/users'}>
+                            <Button variant="secondary" size="sm" onClick={() => window.location.href = '/settings/users'}>
                                 Пригласить партнера
                             </Button>
                         </div>

@@ -3,6 +3,9 @@
 # Этап 1: Сборка (Build)
 FROM node:18-alpine AS builder
 
+# Устанавливаем необходимые зависимости для Prisma
+RUN apk add --no-cache openssl libc6-compat
+
 WORKDIR /app
 
 # Копируем файлы зависимостей
@@ -21,6 +24,9 @@ RUN npm run build
 
 # Этап 2: Запуск (Production)
 FROM node:18-alpine AS runner
+
+# Устанавливаем зависимости для работы Prisma в рантайме
+RUN apk add --no-cache openssl libc6-compat
 
 WORKDIR /app
 

@@ -28,7 +28,7 @@ export class EquityController {
                 data: report
             });
         } catch (error: any) {
-            res.status(500).json({
+            return res.status(500).json({
                 success: false,
                 error: {
                     message: error.message || 'Failed to get equity report'

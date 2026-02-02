@@ -41,9 +41,15 @@ export default function UsersPage() {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert('Ссылка скопирована!');
+  const handleRemove = async (userId: string, userName: string) => {
+    if (!confirm(`Вы уверены, что хотите удалить пользователя ${userName}?`)) return;
+    try {
+      await apiDelete(`/users/${userId}`);
+      queryClient.invalidateQueries({ queryKey: ['company-users'] });
+      alert('Пользователь удален');
+    } catch (error: any) {
+      alert(error?.response?.data?.error?.message || 'Ошибка при удалении');
+    }
   };
 
   return (

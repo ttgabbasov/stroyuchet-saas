@@ -209,6 +209,6 @@ export async function createInvite(
 export async function updatePushToken(userId: string, token: string): Promise<void> {
   await prisma.user.update({
     where: { id: userId },
-    data: { pushToken: token },
+    data: { pushToken: token } as any,
   });
 }

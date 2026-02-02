@@ -6,7 +6,8 @@ import { TransactionResponseV2 } from '../transactions/transactions.service';
  * Initialize all push notification handlers
  */
 export function initPushHandlers() {
-    // Listen for new transactions
+    // Listen for new transactions (Disabled per user request)
+    /*
     eventBus.on(EVENTS.TRANSACTION.CREATED, async (transaction: TransactionResponseV2) => {
         try {
             const { type, amountCents, category, project, createdBy } = transaction;
@@ -28,6 +29,7 @@ export function initPushHandlers() {
             console.error('Error in TRANSACTION.CREATED push handler:', error);
         }
     });
+    */
 
-    console.log('Push notification handlers initialized.');
+    console.log('Push notification handlers initialized (Transactions disabled).');
 }

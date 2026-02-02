@@ -7,7 +7,7 @@ FROM node:18-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # Этап 3: Сборка
 FROM base AS builder

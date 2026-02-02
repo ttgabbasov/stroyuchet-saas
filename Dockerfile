@@ -31,6 +31,7 @@ RUN apk add --no-cache openssl libc6-compat
 WORKDIR /app
 
 # Устанавливаем только production зависимости
+COPY package.json package-lock.json ./
 RUN npm install --omit=dev
 
 # Копируем собранные файлы из этапа builder

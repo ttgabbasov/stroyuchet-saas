@@ -64,7 +64,7 @@ export default function NewTransactionPage() {
   const createMutation = useCreateTransaction();
 
   // Фильтруем кассы
-  const sourceMoneySources = moneySources?.filter(ms => !(ms as any).isAdvance) || [];
+  const sourceMoneySources = moneySources?.filter(ms => !ms.isAdvance) || [];
   const allMoneySources = moneySources || [];
 
   // Фильтруем пользователей для выплат/подотчёта

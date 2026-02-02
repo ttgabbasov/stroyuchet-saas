@@ -37,9 +37,7 @@ function ReturnAdvanceForm({
   const { data: moneySources } = useMoneySources();
 
   // Фильтруем только основные кассы (не подотчётные) для возврата
-  const targetMoneySources = moneySources?.filter(
-    (ms: any) => !ms.isAdvance && ms.id !== advanceMoneySourceId
-  ) || [];
+  const targetMoneySources = moneySources?.filter(ms => !ms.isAdvance && ms.id !== advanceMoneySourceId) || [];
 
   const handleSubmit = async () => {
     if (!toMoneySourceId) {
@@ -200,7 +198,7 @@ export default function ReturnAdvancePage() {
   const { data: moneySources, isLoading } = useMoneySources();
 
   // Находим подотчётную кассу текущего пользователя
-  const advanceSource = moneySources?.find((ms: any) => ms.isAdvance);
+  const advanceSource = moneySources?.find((ms) => ms.isAdvance);
 
   if (isLoading) {
     return (

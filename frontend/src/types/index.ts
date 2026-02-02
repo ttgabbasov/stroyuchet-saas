@@ -90,6 +90,7 @@ export interface MoneySource {
   ownerId: string;
   ownerName: string;
   isCompanyMain: boolean;
+  isAdvance: boolean;
   isActive: boolean;
   balanceCents: number;
   sharedWith: MoneySourceAccess[];

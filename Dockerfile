@@ -37,6 +37,10 @@ RUN npm ci --only=production
 # Копируем собранные файлы из этапа builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+
+# Генерируем Prisma клиент для продакшена
+RUN npx prisma generate
+
 # Копируем скрипты
 COPY --from=builder /app/scripts ./scripts
 

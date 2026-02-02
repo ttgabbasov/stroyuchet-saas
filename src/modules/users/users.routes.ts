@@ -179,21 +179,18 @@ router.delete(
   }
 );
 
-/**
- * POST /api/users/invite
- * Создание пригласительной ссылки
- */
 router.post(
   '/invite',
   requireRole('OWNER', 'ACCOUNTANT'),
   validateBody(z.object({
     role: z.enum(['PARTNER', 'FOREMAN', 'ACCOUNTANT', 'VIEWER']).default('FOREMAN'),
+    email: z.string().email().optional(),
   })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) return;
 
-      const { role } = req.body;
+      const { role, email } = req.body;
 
       // Только OWNER может приглашать PARTNER
       if (role === 'PARTNER' && req.user.role !== 'OWNER') {
@@ -207,7 +204,8 @@ router.post(
       const invite = await usersService.createInvite(
         req.user.companyId,
         role as any,
-        req.user.userId
+        req.user.userId,
+        email
       );
 
       // Construct full URL using request origin or env
@@ -221,6 +219,24 @@ router.post(
           link: fullLink
         }
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/users/push-token
+ * Сохранение Push-токена устройства
+ */
+router.post(
+  '/push-token',
+  validateBody(z.object({ token: z.string() })),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) return;
+      await usersService.updatePushToken(req.user.userId, req.body.token);
+      res.json({ success: true });
     } catch (error) {
       next(error);
     }

@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>()(
         }),
 
       setAccessToken: (accessToken) =>
-        set({ accessToken }),
+        set({ accessToken, isAuthenticated: !!accessToken }),
 
       setCompany: (company) =>
         set({ company }),

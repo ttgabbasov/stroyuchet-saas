@@ -74,7 +74,7 @@ export default function SettingsPage() {
       ],
     },
     {
-      title: 'Приложение',
+      title: 'Мобильное приложение',
       items: [
         {
           icon: Bell,
@@ -88,13 +88,30 @@ export default function SettingsPage() {
           value: user?.telegramId ? 'Привязан' : 'Не привязан',
         },
         {
+          icon: CreditCard, // Using as placeholder or adding a new one
+          label: 'Скачать для iOS',
+          href: '/settings/help', // Link to help/download page
+          value: 'App Store',
+        },
+        {
+          icon: Building2, // Using as placeholder
+          label: 'Скачать для Android',
+          href: '/settings/help',
+          value: 'Google Play',
+        },
+      ],
+    },
+    {
+      title: 'Безопасность и помощь',
+      items: [
+        {
           icon: Shield,
           label: 'Безопасность',
           href: '/settings/security',
         },
         {
           icon: HelpCircle,
-          label: 'Помощь',
+          label: 'Помощь и поддержка',
           href: '/settings/help',
         },
       ],

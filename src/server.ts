@@ -15,6 +15,10 @@ async function main() {
     await prisma.$connect();
     logger.info('Database connected');
 
+    // Инициализируем уведомления
+    const { initPushHandlers } = await import('./modules/notifications/push-handlers.js');
+    initPushHandlers();
+
     // Запускаем сервер
     app.listen(PORT, () => {
       logger.info(`Server running on http://localhost:${PORT}`);

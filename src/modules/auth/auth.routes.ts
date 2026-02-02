@@ -71,9 +71,15 @@ router.post(
   authController.refresh
 );
 
-// ============================================
-// PROTECTED ROUTES (требуют авторизации)
-// ============================================
+/**
+ * GET /api/auth/invites/validate/:code
+ * Валидация кода приглашения
+ */
+router.get(
+  '/invites/validate/:code',
+  authLimiter.middleware(),
+  authController.validateInvite
+);
 
 /**
  * GET /api/auth/me

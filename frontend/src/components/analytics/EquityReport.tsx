@@ -1,9 +1,11 @@
+import { useRouter } from 'next/navigation';
 import { useEquityReport } from '@/lib/hooks';
 import { Card, Button } from '@/components/ui';
 import { formatMoney, formatMoneyShort } from '@/types';
 import { AlertCircle, ArrowRight, CheckCircle2, Wallet, RefreshCw } from 'lucide-react';
 
 export function EquityReport() {
+    const router = useRouter();
     const { data: report, isLoading, refetch } = useEquityReport();
 
     if (isLoading) {
@@ -35,7 +37,7 @@ export function EquityReport() {
                             <p className="text-warning-700 dark:text-warning-200 mb-3">
                                 Взаиморасчеты (Equity) предназначены для разделения прибыли и обязательств между несколькими партнерами (50/50).
                             </p>
-                            <Button variant="secondary" size="sm" onClick={() => window.location.href = '/settings/users'}>
+                            <Button variant="secondary" size="sm" onClick={() => router.push('/settings/users')}>
                                 Пригласить партнера
                             </Button>
                         </div>

@@ -151,7 +151,8 @@ export interface InviteResult {
 export async function createInvite(
   companyId: string,
   role: Role = 'FOREMAN',
-  _requesterId: string
+  _requesterId: string,
+  email?: string
 ): Promise<InviteResult> {
   const crypto = await import('crypto');
   const code = crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -169,9 +170,45 @@ export async function createInvite(
     }
   });
 
+  const relativeLink = `/join?code=${code}`;
+
+  // If email is provided, send invitation automatically
+  if (email) {
+    try {
+      const company = await prisma.company.findUnique({
+        where: { id: companyId },
+        select: { name: true }
+      });
+
+      const baseUrl = process.env.CORS_ORIGIN || 'http://localhost:3000';
+      const fullLink = `${baseUrl}${relativeLink}`;
+
+      const { MailService } = await import('../mail/mail.service');
+      await MailService.getInstance().sendInvitation(
+        email,
+        fullLink,
+        company?.name || 'СтройУчёт',
+        role
+      );
+    } catch (error) {
+      console.error('Failed to send invite email:', error);
+      // We don't fail the invitation creation if email fails
+    }
+  }
+
   return {
     code,
-    link: `/join?code=${code}`,
-    expiresAt
+    link: relativeLink,
+    expiresAt,
   };
+}
+
+/**
+ * Обновление Push-токена устройства
+ */
+export async function updatePushToken(userId: string, token: string): Promise<void> {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { pushToken: token },
+  });
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, UserPlus, MoreVertical, Mail, Trash2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Mail, Trash2, CheckCircle2 } from 'lucide-react';
 import { Button, Card, Input } from '@/components/ui';
 import { useCompanyUsers } from '@/lib/hooks';
 import { useIsOwner, useUser } from '@/store/auth';
@@ -18,17 +18,21 @@ export default function UsersPage() {
   const currentUser = useUser();
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'ACCOUNTANT' | 'FOREMAN' | 'VIEWER'>('FOREMAN');
+  const [inviteRole, setInviteRole] = useState<'ACCOUNTANT' | 'FOREMAN' | 'VIEWER' | 'PARTNER'>('FOREMAN');
   const [sending, setSending] = useState(false);
+  const [createdInvite, setCreatedInvite] = useState<{ link: string; code: string } | null>(null);
 
   const handleInvite = async () => {
-    if (!inviteEmail) return;
     setSending(true);
     try {
-      await apiPost('/users/invite', { email: inviteEmail, role: inviteRole });
-      alert('Приглашение отправлено');
-      setInviteEmail('');
-      setShowInvite(false);
+      const response = await apiPost<{ link: string; code: string }>('/users/invite', {
+        email: inviteEmail || undefined,
+        role: inviteRole
+      });
+      setCreatedInvite(response);
+      if (inviteEmail) {
+        alert('Приглашение отправлено на почту');
+      }
       queryClient.invalidateQueries({ queryKey: ['company-users'] });
     } catch (error: any) {
       alert(error?.response?.data?.error?.message || 'Ошибка при отправке');
@@ -37,14 +41,9 @@ export default function UsersPage() {
     }
   };
 
-  const handleRemove = async (userId: string, userName: string) => {
-    if (!confirm(`Удалить пользователя ${userName}?`)) return;
-    try {
-      await apiDelete(`/users/${userId}`);
-      queryClient.invalidateQueries({ queryKey: ['company-users'] });
-    } catch (error: any) {
-      alert(error?.response?.data?.error?.message || 'Ошибка при удалении');
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('Ссылка скопирована!');
   };
 
   return (
@@ -58,7 +57,11 @@ export default function UsersPage() {
             <h1 className="text-lg font-semibold text-foreground">Пользователи</h1>
           </div>
           {isOwner && (
-            <Button size="sm" onClick={() => setShowInvite(true)}>
+            <Button size="sm" onClick={() => {
+              setShowInvite(true);
+              setCreatedInvite(null);
+              setInviteEmail('');
+            }}>
               <UserPlus className="w-4 h-4 mr-1" />
               Пригласить
             </Button>
@@ -70,37 +73,66 @@ export default function UsersPage() {
         {/* Invite Modal */}
         {showInvite && (
           <Card padding="lg" className="border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/10">
-            <h3 className="font-medium text-foreground mb-3">Пригласить сотрудника</h3>
-            <div className="space-y-3">
-              <Input
-                label="Email"
-                type="email"
-                placeholder="email@example.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                leftIcon={<Mail className="w-4 h-4" />}
-              />
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Роль</label>
-                <select
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-border bg-card rounded-lg text-foreground focus:ring-2 focus:ring-primary-500 outline-none"
-                >
-                  <option value="ACCOUNTANT">Бухгалтер</option>
-                  <option value="FOREMAN">Прораб</option>
-                  <option value="VIEWER">Наблюдатель</option>
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" className="flex-1" onClick={() => setShowInvite(false)}>
-                  Отмена
+            {!createdInvite ? (
+              <>
+                <h3 className="font-medium text-foreground mb-3">Пригласить сотрудника</h3>
+                <div className="space-y-4">
+                  <Input
+                    label="Email (опционально)"
+                    type="email"
+                    placeholder="email@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    leftIcon={<Mail className="w-4 h-4" />}
+                    description="Если указать почту, мы отправим письмо с приглашением автоматически."
+                  />
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Роль</label>
+                    <select
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value as any)}
+                      className="w-full px-3 py-2 border border-border bg-card rounded-lg text-foreground focus:ring-2 focus:ring-primary-500 outline-none"
+                    >
+                      <option value="FOREMAN">Прораб</option>
+                      <option value="ACCOUNTANT">Бухгалтер</option>
+                      {isOwner && <option value="PARTNER">Партнер</option>}
+                      <option value="VIEWER">Наблюдатель</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" className="flex-1" onClick={() => setShowInvite(false)}>
+                      Отмена
+                    </Button>
+                    <Button className="flex-1" onClick={handleInvite} isLoading={sending}>
+                      {inviteEmail ? 'Отправить и создать' : 'Создать ссылку'}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4 py-2">
+                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-medium">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Приглашение создано
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Отправьте эту ссылку сотруднику. Она действительна в течение 7 дней.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={createdInvite.link}
+                    className="flex-1 font-mono text-xs bg-muted/50"
+                  />
+                  <Button onClick={() => copyToClipboard(createdInvite.link)}>
+                    Копировать
+                  </Button>
+                </div>
+                <Button variant="secondary" className="w-full" onClick={() => setShowInvite(false)}>
+                  Готово
                 </Button>
-                <Button className="flex-1" onClick={handleInvite} isLoading={sending}>
-                  Отправить
-                </Button>
               </div>
-            </div>
+            )}
           </Card>
         )}
 

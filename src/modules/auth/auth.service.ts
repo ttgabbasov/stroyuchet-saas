@@ -173,9 +173,38 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   };
 }
 
-// ============================================
-// JOIN COMPANY
-// ============================================
+/**
+ * Получение информации о приглашении по коду (публично)
+ */
+export async function getInviteInfo(code: string) {
+  const invite = await prisma.invite.findUnique({
+    where: { code },
+    include: {
+      company: {
+        select: { name: true }
+      }
+    },
+  });
+
+  if (!invite) {
+    throw new AuthError(ErrorCodes.NOT_FOUND, 'Приглашение не найдено');
+  }
+
+  if (invite.usedAt) {
+    throw new AuthError(ErrorCodes.INVALID_INPUT, 'Приглашение уже использовано');
+  }
+
+  if (invite.expiresAt < new Date()) {
+    throw new AuthError(ErrorCodes.INVALID_INPUT, 'Приглашение истекло');
+  }
+
+  return {
+    code: invite.code,
+    role: invite.role,
+    companyName: invite.company.name,
+    expiresAt: invite.expiresAt,
+  };
+}
 
 /**
  * Присоединение к компании по invite code

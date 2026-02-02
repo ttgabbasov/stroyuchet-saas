@@ -46,7 +46,7 @@ export class TransactionError extends Error {
 }
 
 export interface TransactionResponseV2 extends TransactionResponse {
-  moneySource: { id: string; name: string };
+  moneySource: { id: string; name: string; companyId: string };
   toMoneySource?: { id: string; name: string };
   payoutUser?: { id: string; name: string };
   project?: { id: string; name: string };
@@ -738,7 +738,11 @@ function mapTransactionToResponseV2(
       color: tx.category.color,
       allowedTypes: tx.category.allowedTypes,
     },
-    moneySource: tx.moneySource,
+    moneySource: {
+      id: tx.moneySource.id,
+      name: tx.moneySource.name,
+      companyId: tx.moneySource.companyId,
+    },
     toMoneySource: tx.toMoneySource || undefined,
     payoutUser: tx.payoutUser || undefined,
     project: tx.project || undefined,

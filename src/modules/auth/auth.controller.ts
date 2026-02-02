@@ -90,9 +90,25 @@ export async function login(
   }
 }
 
-// ============================================
-// JOIN COMPANY
-// ============================================
+/**
+ * GET /api/auth/invites/validate/:code
+ * Валидация приглашения
+ */
+export async function validateInvite(
+  req: Request<{ code: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const result = await authService.getInviteInfo(req.params.code);
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    handleAuthError(error, res, next);
+  }
+}
 
 /**
  * POST /api/auth/join

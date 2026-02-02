@@ -21,7 +21,7 @@ interface ReturnAdvanceFormProps {
   onSuccess?: () => void;
 }
 
-export function ReturnAdvanceForm({
+function ReturnAdvanceForm({
   advanceMoneySourceId,
   advanceBalance,
   onSuccess
@@ -145,8 +145,8 @@ export function ReturnAdvanceForm({
               type="button"
               onClick={() => setReturnAll(true)}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${returnAll
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-accent'
+                ? 'bg-primary-600 text-white'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
             >
               Весь остаток
@@ -155,8 +155,8 @@ export function ReturnAdvanceForm({
               type="button"
               onClick={() => setReturnAll(false)}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${!returnAll
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-accent'
+                ? 'bg-primary-600 text-white'
+                : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
             >
               Часть суммы

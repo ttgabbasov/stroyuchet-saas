@@ -13,7 +13,7 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 
 # Устанавливаем зависимости (включая dev для сборки)
-RUN npm ci
+RUN npm install
 
 # Копируем исходный код
 COPY . .
@@ -31,8 +31,7 @@ RUN apk add --no-cache openssl libc6-compat
 WORKDIR /app
 
 # Устанавливаем только production зависимости
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Копируем собранные файлы из этапа builder
 COPY --from=builder /app/dist ./dist

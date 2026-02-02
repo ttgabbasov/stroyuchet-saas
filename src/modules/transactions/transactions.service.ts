@@ -431,7 +431,7 @@ export async function getTransactions(
       include: {
         category: true,
         createdBy: { select: { id: true, name: true } },
-        moneySource: { select: { id: true, name: true } },
+        moneySource: { select: { id: true, name: true, companyId: true } },
         toMoneySource: { select: { id: true, name: true } },
         payoutUser: { select: { id: true, name: true } },
         project: { select: { id: true, name: true } },
@@ -717,7 +717,7 @@ type TransactionWithRelationsV2 = Prisma.TransactionGetPayload<{
   include: {
     category: true;
     createdBy: { select: { id: true; name: true } };
-    moneySource: { select: { id: true; name: true } };
+    moneySource: { select: { id: true; name: true, companyId: true } };
     toMoneySource: { select: { id: true; name: true } };
     payoutUser: { select: { id: true; name: true } };
     project: { select: { id: true; name: true } };

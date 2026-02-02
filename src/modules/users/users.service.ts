@@ -183,7 +183,7 @@ export async function createInvite(
       const baseUrl = process.env.CORS_ORIGIN || 'http://localhost:3000';
       const fullLink = `${baseUrl}${relativeLink}`;
 
-      const { MailService } = await import('../mail/mail.service');
+      const { MailService } = await import('../mail/mail.service.js');
       await MailService.getInstance().sendInvitation(
         email,
         fullLink,

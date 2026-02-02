@@ -37,8 +37,8 @@ export default function ProfilePage() {
 
   const onSubmit = async (data: ProfileForm) => {
     try {
-      const response = await apiPatch('/users/me', data);
-      setUser(response.data as any);
+      const response = await apiPatch<any>('/users/me', data);
+      setUser(response);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {

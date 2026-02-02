@@ -66,8 +66,8 @@ export default function CompanyPage() {
 
   const onSubmit = async (data: CompanyForm) => {
     try {
-      const response = await apiPatch('/companies/current', data);
-      setCompany(response.data as any);
+      const response = await apiPatch<any>('/companies/current', data);
+      setCompany(response);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {

@@ -1294,7 +1294,7 @@ export class TelegramBotService {
                     categoryId: category.id,
                     comment: vtx.comment || 'Авиа-запись',
                     receiptStatus: 'NO_RECEIPT',
-
+                    date: new Date().toISOString(),
                 },
                 user.id,
                 user.companyId,

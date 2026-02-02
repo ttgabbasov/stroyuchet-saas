@@ -23,7 +23,7 @@ export class EquityController {
 
             const report = await getEquityReport(user.companyId);
 
-            res.json({
+            return res.json({
                 success: true,
                 data: report
             });

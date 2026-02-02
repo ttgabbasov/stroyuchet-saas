@@ -278,7 +278,7 @@ export async function getTransactionById(
     include: {
       category: true,
       createdBy: { select: { id: true, name: true } },
-      moneySource: { select: { id: true, name: true } },
+      moneySource: { select: { id: true, name: true, companyId: true } },
       toMoneySource: { select: { id: true, name: true } },
       payoutUser: { select: { id: true, name: true } },
       project: { select: { id: true, name: true } },
@@ -354,7 +354,7 @@ export async function updateTransaction(
     include: {
       category: true,
       createdBy: { select: { id: true, name: true } },
-      moneySource: { select: { id: true, name: true } },
+      moneySource: { select: { id: true, name: true, companyId: true } },
       toMoneySource: { select: { id: true, name: true } },
       payoutUser: { select: { id: true, name: true } },
       project: { select: { id: true, name: true } },
@@ -481,7 +481,7 @@ export async function getTransactionsWithRunningBalance(
     include: {
       category: true,
       createdBy: { select: { id: true, name: true } },
-      moneySource: { select: { id: true, name: true } },
+      moneySource: { select: { id: true, name: true, companyId: true } },
       toMoneySource: { select: { id: true, name: true } },
       payoutUser: { select: { id: true, name: true } },
       project: { select: { id: true, name: true } },
@@ -579,7 +579,7 @@ export async function restoreTransaction(
     include: {
       category: true,
       createdBy: { select: { id: true, name: true } },
-      moneySource: { select: { id: true, name: true } },
+      moneySource: { select: { id: true, name: true, companyId: true } },
       toMoneySource: { select: { id: true, name: true } },
       payoutUser: { select: { id: true, name: true } },
       project: { select: { id: true, name: true } },

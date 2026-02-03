@@ -76,7 +76,7 @@ router.get(
 
       const { TelegramBotService } = await import('../telegram/index.js');
       const botService = TelegramBotService.getInstance();
-      const botName = botService?.getBotUsername() || 'StroyUchetBot';
+      const botName = botService?.getBotUsername() || 'STUchetBot';
 
       res.json({
         success: true,

@@ -109,7 +109,7 @@ export default function MoreScreen() {
                             if (!user?.telegramId) {
                                 alert('Для работы бота его нужно привязать в настройках вашего аккаунта на сайте tgabbasov.store');
                             }
-                            Linking.openURL('https://t.me/stroyuchet_bot');
+                            Linking.openURL('https://t.me/STUchetBot');
                         }}
                     />
                     <MenuItem

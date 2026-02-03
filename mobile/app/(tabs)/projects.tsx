@@ -6,10 +6,12 @@ import { useAuthStore } from '../../lib/auth';
 import { apiGet } from '../../lib/api';
 import { formatMoney } from '../../lib/utils';
 import { useState } from 'react';
+import CreateProjectModal from '../../components/CreateProjectModal';
 
 export default function ProjectsScreen() {
     const { projects, loading, refreshing, refresh, error } = useProjects();
     const [searchQuery, setSearchQuery] = useState('');
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const filteredProjects = projects.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -22,28 +24,21 @@ export default function ProjectsScreen() {
                 {/* Header */}
                 <View className="flex-row justify-between items-center mb-6">
                     <Text className="text-white text-2xl font-bold">Объекты</Text>
-                    <TouchableOpacity
-                        onPress={() => {
-                            // TODO: Open Create Project Modal
-                            alert('Функция создания объекта будет доступна в следующем обновлении');
-                        }}
-                        className="w-10 h-10 bg-primary rounded-xl items-center justify-center"
-                    >
-                        <Plus color="#fff" size={24} />
-                    </TouchableOpacity>
                 </View>
 
-                {/* Search */}
-                <View className="bg-white/10 flex-row items-center px-4 h-12 rounded-2xl border border-white/20 mb-6">
-                    <Search color="#94A3B8" size={20} />
-                    <TextInput
-                        placeholder="Поиск объектов..."
-                        placeholderTextColor="#9CA3AF"
-                        className="flex-1 ml-3 text-white"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
+                {/* Search - only show if there are projects */}
+                {projects.length > 0 && (
+                    <View className="bg-white/10 flex-row items-center px-4 h-12 rounded-2xl border border-white/20 mb-6">
+                        <Search color="#94A3B8" size={20} />
+                        <TextInput
+                            placeholder="Поиск объектов..."
+                            placeholderTextColor="#9CA3AF"
+                            className="flex-1 ml-3 text-white"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                    </View>
+                )}
 
                 <ScrollView
                     className="flex-1"
@@ -59,9 +54,20 @@ export default function ProjectsScreen() {
                             <Text className="text-danger">{error}</Text>
                         </View>
                     ) : filteredProjects.length === 0 ? (
-                        <View className="bg-card rounded-2xl p-10 items-center border border-secondary">
-                            <Building2 color="#475569" size={48} />
-                            <Text className="text-muted mt-4 text-center">Объекты не найдены</Text>
+                        <View className="bg-card rounded-[32px] p-10 items-center border border-secondary">
+                            <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-6">
+                                <Building2 color="#2563EB" size={40} />
+                            </View>
+                            <Text className="text-white font-bold text-xl mb-3 text-center">Объекты не найдены</Text>
+                            <Text className="text-muted text-center mb-8 leading-5">
+                                У вас пока нет созданных объектов. Добавьте первый объект, чтобы начать вести по нему учёт.
+                            </Text>
+                            <TouchableOpacity
+                                onPress={() => setIsModalVisible(true)}
+                                className="bg-primary px-8 py-4 rounded-2xl shadow-lg shadow-primary/30"
+                            >
+                                <Text className="text-white font-bold text-base">Добавить объект</Text>
+                            </TouchableOpacity>
                         </View>
                     ) : (
                         filteredProjects.map((project) => (
@@ -72,6 +78,12 @@ export default function ProjectsScreen() {
                     <View className="h-20" />
                 </ScrollView>
             </View>
+
+            <CreateProjectModal
+                visible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+                onSuccess={refresh}
+            />
         </SafeAreaView>
     );
 }

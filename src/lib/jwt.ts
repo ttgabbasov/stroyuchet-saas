@@ -76,11 +76,11 @@ export function verifyRefreshToken(token: string): { userId: string } | null {
       userId: string;
       type: string;
     };
-    
+
     if (payload.type !== 'refresh') {
       return null;
     }
-    
+
     return { userId: payload.userId };
   } catch {
     return null;
@@ -108,17 +108,17 @@ export function decodeToken(token: string): JWTPayload | null {
 export function generateCode(length = 8): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Без похожих символов
   let code = '';
-  
+
   const randomBytes = crypto.randomBytes(length);
   for (let i = 0; i < length; i++) {
     code += chars[randomBytes[i] % chars.length];
   }
-  
+
   // Форматируем как XXX-XXX-XX
   if (length === 8) {
     return `${code.slice(0, 3)}-${code.slice(3, 6)}-${code.slice(6)}`;
   }
-  
+
   return code;
 }
 
@@ -135,10 +135,10 @@ export function hashToken(token: string): string {
 function parseExpiresIn(expires: string): number {
   const match = expires.match(/^(\d+)([smhd])$/);
   if (!match) return 900; // default 15 min
-  
+
   const value = parseInt(match[1], 10);
   const unit = match[2];
-  
+
   switch (unit) {
     case 's': return value;
     case 'm': return value * 60;
@@ -159,3 +159,15 @@ export const REFRESH_TOKEN_COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/api/auth/refresh',
 };
+
+/**
+ * Получение опций куки для refresh token с учетом "Запомнить меня"
+ */
+export function getRefreshTokenCookieOptions(rememberMe: boolean) {
+  return {
+    ...REFRESH_TOKEN_COOKIE_OPTIONS,
+    maxAge: rememberMe
+      ? 30 * 24 * 60 * 60 * 1000 // 30 days
+      : 7 * 24 * 60 * 60 * 1000,  // 7 days
+  };
+}

@@ -16,7 +16,7 @@ import {
   CreateInviteInput,
 } from './auth.schema';
 import { ErrorCodes } from '../../types/api.types';
-import { REFRESH_TOKEN_COOKIE_OPTIONS } from '../../lib/jwt';
+import { getRefreshTokenCookieOptions } from '../../lib/jwt';
 
 // ============================================
 // REGISTRATION
@@ -35,7 +35,11 @@ export async function register(
     const result = await authService.register(req.body);
 
     // Устанавливаем refresh token в httpOnly cookie (опционально)
-    res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie(
+      'refreshToken',
+      result.tokens.refreshToken,
+      getRefreshTokenCookieOptions(!!req.body.rememberMe)
+    );
 
     res.status(201).json({
       success: true,
@@ -71,7 +75,11 @@ export async function login(
   try {
     const result = await authService.login(req.body);
 
-    res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie(
+      'refreshToken',
+      result.tokens.refreshToken,
+      getRefreshTokenCookieOptions(!!req.body.rememberMe)
+    );
 
     res.json({
       success: true,
@@ -122,7 +130,11 @@ export async function joinCompany(
   try {
     const result = await authService.joinCompany(req.body);
 
-    res.cookie('refreshToken', result.tokens.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie(
+      'refreshToken',
+      result.tokens.refreshToken,
+      getRefreshTokenCookieOptions(!!(req.body as any).rememberMe)
+    );
 
     res.status(201).json({
       success: true,
@@ -171,7 +183,7 @@ export async function refresh(
 
     const tokens = await authService.refreshTokens(refreshToken);
 
-    res.cookie('refreshToken', tokens.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+    res.cookie('refreshToken', tokens.refreshToken, getRefreshTokenCookieOptions(false));
 
     res.json({
       success: true,

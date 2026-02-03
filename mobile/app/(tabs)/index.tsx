@@ -8,8 +8,7 @@ import {
   CheckCircle2,
   ChevronRight,
   TrendingUp,
-  TrendingDown,
-  Plus
+  TrendingDown
 } from 'lucide-react-native';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { formatMoney } from '../../lib/utils';
@@ -47,28 +46,26 @@ export default function DashboardScreen() {
             <Text className="text-white text-2xl font-bold">{firstName}</Text>
           </View>
           <TouchableOpacity
-            onPress={() => router.push('/more')}
+            onPress={() => router.push('/profile')}
             className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center border border-primary/30"
           >
             <Text className="text-primary font-bold text-lg">{firstName ? firstName[0] : 'U'}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Status Notification - Show error if any */}
+        {/* Status Notification */}
         {error ? (
           <View className="bg-danger/10 border border-danger/20 rounded-2xl p-4 flex-row items-center mb-6">
             <Text className="text-danger flex-1 ml-3">{error}</Text>
           </View>
-        ) : (!summary) ? (
+        ) : (!summary || summary.totalBalanceCents === 0) && transactions.length === 0 ? (
           <View className="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex-row items-center mb-6">
             <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center mr-3">
-              <Plus color="#2563EB" size={20} />
+              <ArrowUpRight color="#2563EB" size={20} />
             </View>
             <View className="flex-1">
-              <Text className="text-white font-bold">Нет объектов в работе</Text>
-              <TouchableOpacity onPress={() => router.push('/projects')}>
-                <Text className="text-primary text-xs font-semibold">Добавить первый объект</Text>
-              </TouchableOpacity>
+              <Text className="text-white font-bold">Добро пожаловать!</Text>
+              <Text className="text-muted text-xs">Добавьте первую операцию, чтобы увидеть статистику</Text>
             </View>
           </View>
         ) : (
@@ -80,7 +77,6 @@ export default function DashboardScreen() {
 
         {/* Main Balance Card */}
         <View className="bg-primary rounded-[32px] p-6 mb-8 shadow-xl shadow-primary/40 overflow-hidden relative">
-          {/* Subtle background circles for premium look */}
           <View className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
           <View className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-black/10" />
 
@@ -131,7 +127,11 @@ export default function DashboardScreen() {
               label="Перевод"
               onPress={() => openCreateModal('INTERNAL')}
             />
-            <QuickAction icon={<ClipboardList color="#94A3B8" size={24} />} label="Отчёт" />
+            <QuickAction
+              icon={<ClipboardList color="#94A3B8" size={24} />}
+              label="Отчёт"
+              onPress={() => router.push('/reports')}
+            />
           </View>
         </View>
 
@@ -139,7 +139,7 @@ export default function DashboardScreen() {
         <View className="mb-8">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-white text-lg font-bold">Последние операции</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/transactions')}>
               <Text className="text-primary text-sm font-semibold">Все</Text>
             </TouchableOpacity>
           </View>
@@ -165,7 +165,6 @@ export default function DashboardScreen() {
           )}
         </View>
 
-        {/* Extra Bottom Spacing for Tab Bar */}
         <View className="h-20" />
       </ScrollView>
 
@@ -184,24 +183,19 @@ function TransactionItem({ type, amountCents, category, projectName, comment, da
   return (
     <TouchableOpacity
       className="bg-card rounded-2xl p-4 flex-row items-center border border-secondary mb-3"
+      onPress={() => { }}
     >
-      <View className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${isIncome ? 'bg-success/10' : 'bg-danger/10'
-        }`}>
-        {isIncome ? (
-          <TrendingUp color="#10B981" size={20} />
-        ) : (
-          <TrendingDown color="#EF4444" size={20} />
-        )}
+      <View className={`w-12 h-12 rounded-xl items-center justify-center mr-4 ${isIncome ? 'bg-success/10' : 'bg-danger/10'}`}>
+        {isIncome ? <TrendingUp color="#10B981" size={20} /> : <TrendingDown color="#EF4444" size={20} />}
       </View>
       <View className="flex-1">
-        <Text className="text-white font-bold text-sm">{typeof category === 'string' ? category : category.name}</Text>
+        <Text className="text-white font-bold text-sm">{typeof category === 'string' ? category : category?.name}</Text>
         <Text className="text-muted text-xs" numberOfLines={1}>
           {projectName || 'Без объекта'} • {comment || 'Без комментария'}
         </Text>
       </View>
       <View className="items-end">
-        <Text className={`font-bold text-sm ${isIncome ? 'text-success' : 'text-white'
-          }`}>
+        <Text className={`font-bold text-sm ${isIncome ? 'text-success' : 'text-white'}`}>
           {isIncome ? '+' : '-'}{formatMoney(amountCents)}
         </Text>
         <View className="flex-row items-center">

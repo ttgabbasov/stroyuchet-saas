@@ -11,12 +11,14 @@ interface AuthState {
   company: Company | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  background: string;
 
   // Actions
   setAuth: (user: User, company: Company, accessToken: string) => void;
   setAccessToken: (token: string) => void;
   setCompany: (company: Company) => void;
   setUser: (user: User) => void;
+  setBackground: (background: string) => void;
   logout: () => void;
 }
 
@@ -27,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
       company: null,
       accessToken: null,
       isAuthenticated: false,
+      background: 'bg-slate-900', // Default background
 
       setAuth: (user, company, accessToken) =>
         set({
@@ -45,6 +48,9 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) =>
         set({ user }),
 
+      setBackground: (background) =>
+        set({ background }),
+
       logout: () =>
         set({
           user: null,
@@ -59,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
         // Не сохраняем accessToken в localStorage (безопаснее)
         user: state.user,
         company: state.company,
+        background: state.background,
       }),
     }
   )

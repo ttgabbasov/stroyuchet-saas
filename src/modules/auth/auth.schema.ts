@@ -52,6 +52,7 @@ export const registerSchema = z.object({
     .min(2, 'Минимум 2 символа')
     .max(200, 'Максимум 200 символов')
     .trim(),
+  rememberMe: z.boolean().optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -62,6 +63,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, 'Пароль обязателен'),
+  rememberMe: z.boolean().optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -146,7 +148,7 @@ export function validateBody<T>(schema: ZodSchema<T>) {
     } catch (error) {
       if (error instanceof ZodError) {
         const details: Record<string, string[]> = {};
-        
+
         for (const issue of error.issues) {
           const path = issue.path.join('.');
           if (!details[path]) {
@@ -154,7 +156,7 @@ export function validateBody<T>(schema: ZodSchema<T>) {
           }
           details[path].push(issue.message);
         }
-        
+
         res.status(400).json({
           success: false,
           error: {
@@ -165,7 +167,7 @@ export function validateBody<T>(schema: ZodSchema<T>) {
         });
         return;
       }
-      
+
       next(error);
     }
   };
@@ -191,7 +193,7 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
         });
         return;
       }
-      
+
       next(error);
     }
   };

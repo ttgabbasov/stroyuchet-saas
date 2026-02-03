@@ -5,7 +5,7 @@ import { useReportsData } from '../../hooks/useReportsData';
 import { formatMoney } from '../../lib/utils';
 
 export default function ReportsScreen() {
-    const { data, loading, refreshing, refresh, error } = useReportsData();
+    const { data, loading, refreshing, refresh, error, period, setPeriod } = useReportsData();
 
     return (
         <SafeAreaView className="flex-1 bg-background">
@@ -16,14 +16,23 @@ export default function ReportsScreen() {
                 }
             >
                 {/* Header */}
-                <View className="flex-row justify-between items-center mb-6">
-                    <Text className="text-white text-2xl font-bold">ДДС Отчет</Text>
-                    <TouchableOpacity
-                        onPress={() => alert('Выбор периода')}
-                        className="bg-card w-10 h-10 rounded-xl items-center justify-center border border-secondary"
-                    >
-                        <Calendar color="#94A3B8" size={20} />
-                    </TouchableOpacity>
+                <View className="mb-6">
+                    <Text className="text-white text-2xl font-bold mb-4">Отчеты</Text>
+
+                    {/* Period Selector */}
+                    <View className="flex-row bg-card rounded-2xl p-1 border border-secondary">
+                        {(['DAY', 'WEEK', 'MONTH', 'YEAR'] as const).map((p) => (
+                            <TouchableOpacity
+                                key={p}
+                                onPress={() => setPeriod(p)}
+                                className={`flex-1 py-2 rounded-xl items-center ${period === p ? 'bg-primary' : ''}`}
+                            >
+                                <Text className={`font-bold text-[10px] ${period === p ? 'text-white' : 'text-muted'}`}>
+                                    {p === 'DAY' ? 'День' : p === 'WEEK' ? 'Неделя' : p === 'MONTH' ? 'Месяц' : 'Год'}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
 
                 {loading && !refreshing ? (
@@ -149,6 +158,25 @@ export default function ReportsScreen() {
                             </View>
                             <View className="w-12 h-12 bg-white/20 rounded-2xl items-center justify-center">
                                 <PieChart color="#fff" size={24} />
+                            </View>
+                        </View>
+
+                        {/* Mutual Settlements Section */}
+                        <View className="mb-8">
+                            <View className="flex-row items-center mb-4">
+                                <Text className="text-white text-lg font-bold">Взаиморасчеты</Text>
+                            </View>
+                            <View className="bg-card rounded-[32px] p-8 items-center border border-secondary">
+                                <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-4">
+                                    <View className="flex-row">
+                                        <TrendingUp color="#2563EB" size={20} />
+                                        <TrendingDown color="#EF4444" size={20} />
+                                    </View>
+                                </View>
+                                <Text className="text-white font-bold text-center mb-2">Здесь будут ваши долги</Text>
+                                <Text className="text-muted text-center text-xs leading-4">
+                                    Раздел со всеми задолженностями перед контрагентами и их долгами перед вами в разработке.
+                                </Text>
                             </View>
                         </View>
                     </>

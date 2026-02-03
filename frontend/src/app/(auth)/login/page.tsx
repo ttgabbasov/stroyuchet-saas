@@ -11,6 +11,7 @@ import { Button, Input, Card } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { apiPost } from '@/lib/api';
 import type { AuthResponse } from '@/types';
+import { Checkbox, BackgroundSelector } from '@/components/auth/auth-ui';
 
 // ============================================
 // Validation Schema
@@ -29,8 +30,9 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { setAuth, background } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const {
     register,
@@ -44,7 +46,10 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await apiPost<AuthResponse>('/auth/login', data);
+      const response = await apiPost<AuthResponse>('/auth/login', {
+        ...data,
+        rememberMe,
+      });
 
       setAuth(response.user, response.company, response.tokens.accessToken);
       router.push('/dashboard');
@@ -55,18 +60,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 transition-colors duration-300">
-      <div className="w-full max-w-sm">
+    <div className={`min-h-screen flex items-center justify-center px-4 transition-all duration-700 ${background}`}>
+      <div className="w-full max-w-sm relative z-10">
+        {/* Decorative elements */}
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary-600/10 rounded-full blur-3xl" />
+
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-foreground">СтройУчёт</h1>
-          <p className="text-muted-foreground mt-1">Вход в систему</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">СтройУчёт</h1>
+          <p className="text-slate-400 mt-1">Вход в систему</p>
         </div>
 
-        <Card padding="lg">
+        <Card padding="lg" className="backdrop-blur-xl bg-card/90 border-white/10 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-danger-50 dark:bg-danger-900/20 border border-danger-100 dark:border-danger-800 text-danger-700 dark:text-danger-400 text-sm">
+              <div className="p-3 rounded-lg bg-danger-500/10 border border-danger-500/20 text-danger-400 text-sm">
                 {error}
               </div>
             )}
@@ -78,6 +87,7 @@ export default function LoginPage() {
               leftIcon={<Mail className="w-4 h-4" />}
               error={errors.email?.message}
               {...register('email')}
+              className="bg-slate-900/50 border-white/5 text-white"
             />
 
             <Input
@@ -87,23 +97,34 @@ export default function LoginPage() {
               leftIcon={<Lock className="w-4 h-4" />}
               error={errors.password?.message}
               {...register('password')}
+              className="bg-slate-900/50 border-white/5 text-white"
             />
+
+            <div className="flex items-center justify-between">
+              <Checkbox
+                label="Запомнить меня"
+                checked={rememberMe}
+                onChange={setRememberMe}
+              />
+            </div>
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full h-11 bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-600/20"
               isLoading={isSubmitting}
             >
               Войти
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-muted-foreground">
+          <div className="mt-6 text-center text-sm text-slate-400">
             Нет аккаунта?{' '}
-            <Link href="/register" className="text-primary-600 dark:text-primary-400 hover:underline">
+            <Link href="/register" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
               Регистрация
             </Link>
           </div>
+
+          <BackgroundSelector />
         </Card>
       </div>
     </div>

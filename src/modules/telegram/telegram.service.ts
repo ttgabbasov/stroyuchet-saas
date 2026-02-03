@@ -349,7 +349,7 @@ export class TelegramBotService {
             ctx.session.step = undefined;
             ctx.session.transactionData = {};
             ctx.session.editingTransactionId = undefined;
-            await this.safeEditOrReply(ctx, '❌ Операция отменена.');
+            await this.safeEditOrReply(ctx, '❌ Операция отменена.', this.getMainMenu());
         });
 
         // Photo handler
@@ -536,6 +536,7 @@ export class TelegramBotService {
                 ctx.session.editingTransactionId = undefined;
                 ctx.session.wizardMessageId = undefined;
                 await ctx.editMessageText('❌ Операция отменена.');
+                await ctx.reply('📱 Возврат в меню:', this.getMainMenu());
                 await ctx.answerCbQuery();
                 return;
             }
@@ -549,24 +550,7 @@ export class TelegramBotService {
                 return;
             }
 
-            // Reports Callbacks
-            if (data === 'rep_month') {
-                await this.handleCurrentMonthReport(ctx);
-                await ctx.answerCbQuery();
-                return;
-            }
 
-            if (data === 'rep_projects') {
-                await this.handleProjectReportsList(ctx);
-                await ctx.answerCbQuery();
-                return;
-            }
-
-            if (data === 'rep_menu') {
-                await this.renderReportsMenu(ctx);
-                await ctx.answerCbQuery();
-                return;
-            }
 
             if (data === 'voice_confirm') {
                 await this.handleVoiceConfirm(ctx);
@@ -577,13 +561,10 @@ export class TelegramBotService {
             if (data === 'voice_cancel') {
                 ctx.session.pendingVoiceTx = undefined;
                 await ctx.editMessageText('❌ Операция отменена.');
+                await ctx.reply('📱 Возврат в меню:', this.getMainMenu());
                 await ctx.answerCbQuery();
                 return;
             }
-
-
-
-
 
             if (data.startsWith('rep_p_')) {
                 const projectId = data.replace('rep_p_', '');
@@ -664,8 +645,6 @@ export class TelegramBotService {
                 return;
             }
 
-
-
             if (data === 'rep_menu') {
                 await this.renderReportsMenu(ctx);
                 await ctx.answerCbQuery();
@@ -684,6 +663,8 @@ export class TelegramBotService {
             this.safeEditOrReply(ctx as any, '❌ Произошла ошибка. Попробуйте написать /cancel и начать заново.');
         });
     }
+
+    // Refresh comment for linter re-evaluation
 
     private async handleStartAdd(ctx: MyContext, type: 'INCOME' | 'EXPENSE' = 'EXPENSE') {
         const user = await this.getUser(ctx);

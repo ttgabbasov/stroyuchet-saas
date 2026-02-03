@@ -12,6 +12,7 @@ import {
 import { X, ChevronDown, Check } from 'lucide-react-native';
 import { useProjects } from '../hooks/useProjects';
 import { useCategories } from '../hooks/useCategories';
+import { useMoneySources } from '../hooks/useMoneySources';
 import { apiPost } from '../lib/api';
 
 interface CreateTransactionModalProps {
@@ -30,11 +31,14 @@ export default function CreateTransactionModal({
     const [type, setType] = useState(initialType);
     const [amount, setAmount] = useState('');
     const [projectId, setProjectId] = useState<string | null>(null);
+    const [moneySourceId, setMoneySourceId] = useState<string | null>(null);
+    const [toMoneySourceId, setToMoneySourceId] = useState<string | null>(null);
     const [categoryId, setCategoryId] = useState<string | null>(null);
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
 
     const { projects, loading: loadingProjects } = useProjects();
+    const { moneySources, loading: loadingMoneySources } = useMoneySources();
     const { groups, ungrouped, loading: loadingCategories } = useCategories(type);
 
     // Reset category if type changes
@@ -56,17 +60,30 @@ export default function CreateTransactionModal({
             Alert.alert('Ошибка', 'Выберите категорию');
             return;
         }
+        if (!moneySourceId) {
+            Alert.alert('Ошибка', 'Выберите кассу/кошелек');
+            return;
+        }
+        if (type === 'INTERNAL' && !toMoneySourceId) {
+            Alert.alert('Ошибка', 'Выберите кассу-получатель');
+            return;
+        }
 
         setLoading(true);
         try {
-            await apiPost('/transactions', {
+            const body: any = {
                 type,
                 amountCents: Math.round(parseFloat(amount.replace(',', '.')) * 100),
-                projectId,
+                moneySourceId,
                 categoryId,
                 comment,
                 date: new Date().toISOString(),
-            });
+            };
+
+            if (projectId) body.projectId = projectId;
+            if (type === 'INTERNAL') body.toMoneySourceId = toMoneySourceId;
+
+            await apiPost('/transactions', body);
             onSuccess();
             resetForm();
             onClose();
@@ -80,6 +97,8 @@ export default function CreateTransactionModal({
     const resetForm = () => {
         setAmount('');
         setProjectId(null);
+        setMoneySourceId(null);
+        setToMoneySourceId(null);
         setCategoryId(null);
         setComment('');
     };
@@ -131,6 +150,48 @@ export default function CreateTransactionModal({
                                 className="bg-card border border-secondary rounded-2xl p-4 text-white text-3xl font-bold"
                             />
                         </View>
+
+                        {/* Money Source Selector */}
+                        <View className="mb-6">
+                            <Text className="text-muted text-xs font-bold uppercase mb-2 ml-1">
+                                {type === 'INTERNAL' ? 'Откуда (Касса)' : 'Касса / Кошелек'}
+                            </Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                                {moneySources.map((ms) => (
+                                    <TouchableOpacity
+                                        key={ms.id}
+                                        onPress={() => setMoneySourceId(ms.id)}
+                                        className={`px-4 py-2 rounded-full border mr-2 ${moneySourceId === ms.id ? 'bg-primary border-primary' : 'bg-card border-secondary'
+                                            }`}
+                                    >
+                                        <Text className={`text-xs ${moneySourceId === ms.id ? 'text-white' : 'text-muted'}`}>
+                                            {ms.name}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        </View>
+
+                        {/* To Money Source Selector (Only for INTERNAL) */}
+                        {type === 'INTERNAL' && (
+                            <View className="mb-6">
+                                <Text className="text-muted text-xs font-bold uppercase mb-2 ml-1">Куда (Касса)</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                                    {moneySources.filter(ms => ms.id !== moneySourceId).map((ms) => (
+                                        <TouchableOpacity
+                                            key={ms.id}
+                                            onPress={() => setToMoneySourceId(ms.id)}
+                                            className={`px-4 py-2 rounded-full border mr-2 ${toMoneySourceId === ms.id ? 'bg-primary border-primary' : 'bg-card border-secondary'
+                                                }`}
+                                        >
+                                            <Text className={`text-xs ${toMoneySourceId === ms.id ? 'text-white' : 'text-muted'}`}>
+                                                {ms.name}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        )}
 
                         {/* Project Selector */}
                         <View className="mb-6">

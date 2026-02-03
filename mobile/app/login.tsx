@@ -28,7 +28,7 @@ export default function LoginScreen() {
             const result = await apiPost<any>('/auth/login', { email, password });
 
             if (result.tokens) {
-                setAuth(result.user, result.tokens.accessToken, result.tokens.refreshToken);
+                setAuth(result.user, result.company, result.tokens.accessToken, result.tokens.refreshToken);
                 router.replace('/(tabs)');
             }
         } catch (err: any) {

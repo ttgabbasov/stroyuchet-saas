@@ -1,87 +1,132 @@
-import { Tabs } from 'expo-router';
-import { Home, Building2, BarChart3, Menu, Plus } from 'lucide-react-native';
+import { Tabs, useRouter } from 'expo-router';
+import {
+  Home,
+  Building2,
+  BarChart3,
+  Settings,
+  Plus,
+  PieChart,
+  Receipt,
+  Wallet,
+  LayoutPanelLeft
+} from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import "../../global.css";
-import NavBottomSheet from '../../components/NavBottomSheet';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import React, { useState } from 'react';
+import CreateTransactionModal from '../../components/CreateTransactionModal';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  const [showNav, setShowNav] = useState(false);
+  const router = useRouter();
+  const [modalVisible, setModalVisible] = useState(false);
 
   return (
     <>
       <Tabs
         screenOptions={{
-          headerShown: false,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: '#0B0F19',
+            borderBottomColor: '#1E293B',
+          },
+          headerTitleStyle: {
+            color: '#fff',
+            fontWeight: 'bold',
+          },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              className="mr-4 w-8 h-8 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/40"
+            >
+              <Plus color="#fff" size={20} />
+            </TouchableOpacity>
+          ),
           tabBarStyle: {
             backgroundColor: '#0B0F19',
             borderTopColor: '#1E293B',
-            height: 60 + insets.bottom,
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
-            paddingTop: 10,
+            height: 65 + insets.bottom,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            paddingTop: 8,
           },
           tabBarActiveTintColor: '#2563EB',
           tabBarInactiveTintColor: '#94A3B8',
           tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
+            fontSize: 9,
+            fontWeight: '600',
+            marginTop: 2,
           },
         }}>
         <Tabs.Screen
           name="index"
           options={{
             title: 'Главная',
-            tabBarIcon: ({ color, size }: { color: string; size: number }) => <Home color={color} size={size} />,
+            tabBarLabel: 'Главная',
+            tabBarIcon: ({ color }: { color: string }) => <Home color={color} size={20} />,
           }}
         />
         <Tabs.Screen
-          name="projects"
+          name="analytics"
           options={{
-            title: 'Объекты',
-            tabBarIcon: ({ color, size }: { color: string; size: number }) => <Building2 color={color} size={size} />,
-          }}
-        />
-        <Tabs.Screen
-          name="menu_trigger"
-          options={{
-            title: 'Меню',
-            tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-              <View className="w-12 h-12 bg-primary rounded-2xl items-center justify-center -mt-6 border-4 border-background">
-                <Plus color="#fff" size={24} />
-              </View>
-            ),
-          }}
-          listeners={{
-            tabPress: (e) => {
-              e.preventDefault();
-              setShowNav(true);
-            },
+            title: 'Аналитика',
+            tabBarLabel: 'Аналитика',
+            tabBarIcon: ({ color }: { color: string }) => <PieChart color={color} size={20} />,
           }}
         />
         <Tabs.Screen
           name="reports"
           options={{
             title: 'Отчёты',
-            tabBarIcon: ({ color, size }: { color: string; size: number }) => <BarChart3 color={color} size={size} />,
+            tabBarLabel: 'Отчёты',
+            tabBarIcon: ({ color }: { color: string }) => <BarChart3 color={color} size={20} />,
           }}
         />
         <Tabs.Screen
-          name="more"
+          name="projects"
           options={{
-            title: 'Ещё',
-            tabBarIcon: ({ color, size }: { color: string; size: number }) => <Menu color={color} size={size} />,
+            title: 'Объекты',
+            tabBarLabel: 'Объекты',
+            tabBarIcon: ({ color }: { color: string }) => <Building2 color={color} size={20} />,
           }}
         />
+        <Tabs.Screen
+          name="transactions"
+          options={{
+            title: 'Операции',
+            tabBarLabel: 'Операции',
+            tabBarIcon: ({ color }: { color: string }) => <Receipt color={color} size={20} />,
+          }}
+        />
+        <Tabs.Screen
+          name="money-sources"
+          options={{
+            title: 'Кассы',
+            tabBarLabel: 'Кассы',
+            tabBarIcon: ({ color }: { color: string }) => <Wallet color={color} size={20} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: 'Настройки',
+            tabBarLabel: 'Настройки',
+            tabBarIcon: ({ color }: { color: string }) => <Settings color={color} size={20} />,
+          }}
+        />
+
+        {/* Hidden internal screens */}
         <Tabs.Screen name="operations" options={{ href: null }} />
         <Tabs.Screen name="cashboxes" options={{ href: null }} />
+        <Tabs.Screen name="menu_trigger" options={{ href: null }} />
+        <Tabs.Screen name="more" options={{ href: null }} />
         <Tabs.Screen name="two" options={{ href: null }} />
       </Tabs>
 
-      <NavBottomSheet
-        isVisible={showNav}
-        onClose={() => setShowNav(false)}
+      <CreateTransactionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSuccess={() => { }}
+        initialType="EXPENSE"
       />
     </>
   );

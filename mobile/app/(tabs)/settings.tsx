@@ -15,15 +15,24 @@ import {
     Send
 } from 'lucide-react-native';
 import { useAuthStore } from '../../lib/auth';
-import { apiGet } from '../../lib/api';
-import { formatMoney } from '../../lib/utils';
 import { useRouter } from 'expo-router';
 import { Linking } from 'react-native';
 
-export default function MoreScreen() {
+export default function SettingsScreen() {
     const user = useAuthStore((state) => state.user);
     const logout = useAuthStore((state) => state.logout);
     const router = useRouter();
+
+    const getRoleLabel = (role?: string) => {
+        const roles: Record<string, string> = {
+            'OWNER': 'Владелец',
+            'ADMIN': 'Администратор',
+            'MANAGER': 'Менеджер',
+            'ACCOUNTANT': 'Бухгалтер',
+            'FOREMAN': 'Прораб'
+        };
+        return roles[role || ''] || role || 'Пользователь';
+    };
 
     const handleLogout = () => {
         logout();
@@ -35,19 +44,23 @@ export default function MoreScreen() {
             <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View className="mb-6">
-                    <Text className="text-white text-3xl font-bold">Ещё</Text>
+                    <Text className="text-white text-3xl font-bold">Настройки</Text>
                 </View>
 
                 {/* Profile Card */}
-                <View className="bg-white/10 border border-white/20 rounded-3xl p-6 mb-8 flex-row items-center">
-                    <View className="w-16 h-16 rounded-full bg-primary/20 items-center justify-center border border-primary/30 mr-4">
-                        <Text className="text-primary font-bold text-2xl">{user?.name?.charAt(0) || 'Т'}</Text>
-                    </View>
+                <View className="bg-card border border-secondary rounded-3xl p-6 mb-8 flex-row items-center">
+                    <TouchableOpacity
+                        onPress={() => router.push('/profile')}
+                        className="w-16 h-16 rounded-full bg-primary/20 items-center justify-center border border-primary/30 mr-4 overflow-hidden"
+                    >
+                        {/* Placeholder for Photo */}
+                        <User color="#2563EB" size={32} />
+                    </TouchableOpacity>
                     <View className="flex-1">
-                        <Text className="text-white text-xl font-bold">{user?.name || 'Тимур'}</Text>
-                        <Text className="text-muted text-sm">{user?.email || 'timur@example.com'}</Text>
-                        <View className="bg-primary/10 self-start px-2 py-0.5 rounded-full mt-2 border border-primary/20">
-                            <Text className="text-primary text-[10px] font-bold uppercase">{user?.role || 'ВЛАДЕЛЕЦ'}</Text>
+                        <Text className="text-white text-xl font-bold font-heading">{user?.name || 'Пользователь'}</Text>
+                        <Text className="text-muted text-sm">{user?.email}</Text>
+                        <View className="bg-primary/10 self-start px-3 py-1 rounded-full mt-2 border border-primary/20">
+                            <Text className="text-primary text-[10px] font-bold uppercase tracking-widest">{getRoleLabel(user?.role)}</Text>
                         </View>
                     </View>
                 </View>
@@ -57,13 +70,12 @@ export default function MoreScreen() {
                     <MenuItem
                         icon={<User color="#94A3B8" size={20} />}
                         label="Профиль"
-                        onPress={() => alert('Профиль пользователя')}
+                        onPress={() => router.push('/profile')}
                     />
                     <MenuItem
                         icon={<Building2 color="#94A3B8" size={20} />}
                         label="Компания"
-                        value="Домант"
-                        onPress={() => alert('Настройки компании')}
+                        onPress={() => router.push('/company')}
                     />
                 </MenuSection>
 
@@ -71,13 +83,13 @@ export default function MoreScreen() {
                     <MenuItem
                         icon={<Users color="#94A3B8" size={20} />}
                         label="Пользователи"
-                        onPress={() => alert('Управление пользователями')}
+                        onPress={() => router.push('/users')}
                     />
                     <MenuItem
                         icon={<UserPlus color="#2563EB" size={20} />}
                         label="Пригласить партнера"
                         labelColor="text-primary"
-                        onPress={() => alert('Приглашение партнера')}
+                        onPress={() => router.push('/users')}
                     />
                 </MenuSection>
 
@@ -85,18 +97,17 @@ export default function MoreScreen() {
                     <MenuItem
                         icon={<CreditCard color="#94A3B8" size={20} />}
                         label="Подписка"
-                        value="Бизнес"
-                        onPress={() => alert('Настройки подписки')}
+                        onPress={() => router.push('/subscription')}
                     />
                     <MenuItem
                         icon={<Bell color="#94A3B8" size={20} />}
                         label="Уведомления"
-                        onPress={() => alert('Настройки уведомлений')}
+                        onPress={() => router.push('/notifications')}
                     />
                     <MenuItem
                         icon={<Shield color="#94A3B8" size={20} />}
                         label="Безопасность"
-                        onPress={() => alert('Настройки безопасности')}
+                        onPress={() => router.push('/security')}
                     />
                 </MenuSection>
 
@@ -115,7 +126,7 @@ export default function MoreScreen() {
                     <MenuItem
                         icon={<HelpCircle color="#94A3B8" size={20} />}
                         label="Помощь"
-                        onPress={() => alert('Служба поддержки')}
+                        onPress={() => router.push('/help')}
                     />
                 </MenuSection>
 
@@ -166,4 +177,3 @@ function MenuItem({ icon, label, value, labelColor = "text-white", onPress }: an
         </TouchableOpacity>
     );
 }
-

@@ -13,7 +13,10 @@ export interface ReportData {
     monthlyTrend?: number; // percentage change
 }
 
+export type ReportPeriod = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
 export function useReportsData() {
+    const [period, setPeriod] = useState<ReportPeriod>('MONTH');
     const [data, setData] = useState<ReportData | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -25,11 +28,18 @@ export function useReportsData() {
         setError(null);
 
         try {
-            // Fetch financial report summary (works better with current UI)
-            const result = await apiGet<any>('/transactions/analytics/summary');
+            // Calculate dateFrom based on period
+            const dateTo = new Date().toISOString();
+            const from = new Date();
+            if (period === 'DAY') from.setHours(0, 0, 0, 0);
+            else if (period === 'WEEK') from.setDate(from.getDate() - 7);
+            else if (period === 'MONTH') from.setMonth(from.getMonth() - 1);
+            else if (period === 'YEAR') from.setFullYear(from.getFullYear() - 1);
+            const dateFrom = from.toISOString();
 
-            // Map the result to match ReportData interface if needed
-            // The structure is almost identical
+            // Fetch financial report summary
+            const result = await apiGet<any>(`/transactions/analytics/summary?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+
             setData({
                 totalIncomeCents: result.totalIncomeCents,
                 totalExpenseCents: result.totalExpenseCents,
@@ -48,7 +58,7 @@ export function useReportsData() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    }, [period]);
 
     useEffect(() => {
         fetchData();
@@ -56,5 +66,5 @@ export function useReportsData() {
 
     const refresh = () => fetchData(true);
 
-    return { data, loading, refreshing, error, refresh };
+    return { data, loading, refreshing, error, refresh, period, setPeriod };
 }

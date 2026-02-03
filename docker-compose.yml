@@ -28,6 +28,12 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
       UPLOAD_DIR: ./uploads
     volumes:
       - ./uploads:/app/uploads

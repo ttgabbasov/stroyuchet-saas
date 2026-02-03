@@ -1,34 +1,34 @@
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: true, // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '465'),
+  secure: true, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
 });
 
 export async function sendEmail(to: string, subject: string, html: string) {
-    try {
-        const info = await transporter.sendMail({
-            from: `"${process.env.SMTP_FROM_NAME || 'StroyUchet'}" <${process.env.SMTP_USER}>`,
-            to,
-            subject,
-            html,
-        });
-        console.log('Message sent: %s', info.messageId);
-        return true;
-    } catch (error) {
-        console.error('Error sending email:', error);
-        return false;
-    }
+  try {
+    const info = await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME || 'StroyUchet'}" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log('Message sent: %s', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
 }
 
 export async function sendPasswordResetEmail(to: string, code: string) {
-    const subject = 'Сброс пароля - СтройУчёт';
-    const html = `
+  const subject = 'Сброс пароля - СтройУчёт';
+  const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #2563EB;">Сброс пароля</h2>
       <p>Вы запросили сброс пароля для вашего аккаунта в СтройУчёт.</p>
@@ -39,11 +39,14 @@ export async function sendPasswordResetEmail(to: string, code: string) {
       <p>Этот код действителен в течение 15 минут.</p>
       <p style="color: #6B7280; font-size: 14px;">Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.</p>
     </div>
+    </div>
   `;
+  return sendEmail(to, subject, html);
+}
 
-    export async function sendProjectDeletionCode(to: string, projectName: string, code: string) {
-        const subject = `Код подтверждения удаления объекта - СтройУчёт`;
-        const html = `
+export async function sendProjectDeletionCode(to: string, projectName: string, code: string) {
+  const subject = `Код подтверждения удаления объекта - СтройУчёт`;
+  const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #DC2626;">Подтверждение удаления</h2>
       <p>Был получен запрос на удаление объекта <b>"${projectName}"</b>.</p>
@@ -55,5 +58,5 @@ export async function sendPasswordResetEmail(to: string, code: string) {
       <p style="color: #6B7280; font-size: 14px;">Если вы не инициировали это действие, срочно смените пароль.</p>
     </div>
   `;
-        return sendEmail(to, subject, html);
-    }
+  return sendEmail(to, subject, html);
+}

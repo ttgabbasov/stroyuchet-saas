@@ -423,6 +423,20 @@ export async function getTransactions(
     if (filters.dateTo) {
       where.date.lte = new Date(filters.dateTo);
     }
+
+  }
+
+  if (filters.search) {
+    const search = filters.search.trim();
+    if (search) {
+      where.OR = [
+        { comment: { contains: search, mode: 'insensitive' } },
+        { project: { name: { contains: search, mode: 'insensitive' } } },
+        { category: { name: { contains: search, mode: 'insensitive' } } },
+        { moneySource: { name: { contains: search, mode: 'insensitive' } } },
+        { payoutUser: { name: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
   }
 
   const [transactions, total] = await Promise.all([
@@ -436,9 +450,6 @@ export async function getTransactions(
         payoutUser: { select: { id: true, name: true } },
         project: { select: { id: true, name: true } },
       },
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-      skip,
-      take: limit,
     }),
     prisma.transaction.count({ where }),
   ]);

@@ -8,21 +8,22 @@ import { Card, Button, Input, AmountDisplay } from '@/components/ui';
 import { apiGet } from '@/lib/api';
 import { formatDate, TYPE_LABELS, TransactionType } from '@/types';
 import type { Transaction } from '@/types';
+import { useDebounce } from '@/lib/hooks';
 
-// ============================================
-// Transactions List Page
 // ============================================
 
 export default function TransactionsPage() {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
   const [typeFilter, setTypeFilter] = useState<TransactionType | ''>('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['transactions', { type: typeFilter }],
+    queryKey: ['transactions', { type: typeFilter, search: debouncedSearch }],
     queryFn: () =>
       apiGet<Transaction[]>('/transactions', {
         limit: 50,
         ...(typeFilter && { type: typeFilter }),
+        ...(debouncedSearch && { search: debouncedSearch }),
       }),
   });
 
@@ -45,6 +46,14 @@ export default function TransactionsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Search */}
+      <Input
+        placeholder="Поиск по сумме, комментарию, проекту..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        leftIcon={<Search className="w-4 h-4" />}
+      />
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">

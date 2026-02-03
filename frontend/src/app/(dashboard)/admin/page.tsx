@@ -9,11 +9,12 @@ import {
 } from 'lucide-react';
 import { Card, Button, Input } from '@/components/ui';
 import { apiGet, apiDelete, apiPatch } from '@/lib/api';
-import { Plan } from '@prisma/client';
 
 // ============================================
 // Types
 // ============================================
+
+export type Plan = 'FREE' | 'PRO' | 'BUSINESS';
 
 interface AdminStats {
     users: {

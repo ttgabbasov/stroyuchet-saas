@@ -13,6 +13,7 @@ import {
   generateCode,
   hashToken,
 } from '../../lib/jwt';
+import { sendPasswordResetEmail } from '../../services/email.service';
 import {
   RegisterInput,
   LoginInput,
@@ -563,10 +564,20 @@ export async function forgotPassword(email: string): Promise<void> {
     },
   });
 
-  // TODO: Отправить email с кодом
-  // Пока просто логируем
+  // Отправляем email с кодом
+  try {
+    const emailSent = await sendPasswordResetEmail(email, resetCode);
+    if (!emailSent) {
+      console.error(`[FORGOT PASSWORD] Failed to send email to ${email}`);
+    } else {
+      console.log(`[FORGOT PASSWORD] Email sent to ${email}`);
+    }
+  } catch (error) {
+    console.error(`[FORGOT PASSWORD] Error sending email:`, error);
+  }
+
+  // Для отладки оставляем лог
   console.log(`[FORGOT PASSWORD] Reset code for ${email}: ${resetCode}`);
-  console.log(`[FORGOT PASSWORD] Code expires at: ${expiresAt.toISOString()}`);
 }
 
 /**

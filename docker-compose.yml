@@ -60,6 +60,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docs:/var/www/docs:ro
     depends_on:
       - frontend
       - backend

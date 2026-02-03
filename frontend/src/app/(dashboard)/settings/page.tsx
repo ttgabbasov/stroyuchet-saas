@@ -12,6 +12,7 @@ import {
   Shield,
   HelpCircle,
   Send,
+  UserCog,
 } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { useUser, useCompany, useAuthStore } from '@/store/auth';
@@ -73,6 +74,18 @@ export default function SettingsPage() {
         },
       ],
     },
+    // Admin panel (only for OWNER)
+    ...(user?.role === 'OWNER' ? [{
+      title: 'Администрирование',
+      items: [
+        {
+          icon: UserCog,
+          label: 'Панель администратора',
+          href: '/admin',
+          value: 'Все пользователи',
+        },
+      ],
+    }] : []),
     {
       title: 'Мобильное приложение',
       items: [

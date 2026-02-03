@@ -21,6 +21,7 @@ import { advanceRoutes } from './modules/advance';
 import { notificationsRoutes } from './modules/notifications';
 import { quickActionsRoutes } from './modules/quick-actions';
 import { equityRoutes } from './modules/equity';
+import { adminRoutes } from './modules/admin';
 import { ErrorCodes } from './types/api.types';
 import { errorHandler } from './middleware/error.middleware';
 import { logger } from './lib/logger';
@@ -101,6 +102,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/help', helpRoutes);
 app.use('/api/quick-actions', quickActionsRoutes);
 app.use('/api/equity', equityRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ============================================
 // 404 HANDLER

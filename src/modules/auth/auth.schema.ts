@@ -85,7 +85,7 @@ export type JoinCompanyInput = z.infer<typeof joinCompanySchema>;
  * Обновление токенов
  */
 export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token обязателен'),
+  refreshToken: z.string().optional(), // Optional because it can be in cookies
 });
 
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;

@@ -32,7 +32,7 @@ export async function updateCurrentCompany(
 
         const { name } = req.body;
 
-        const updatedCompany = await companyService.updateCompany(req.user.companyId, {
+        await companyService.updateCompany(req.user.companyId, {
             name,
         });
 

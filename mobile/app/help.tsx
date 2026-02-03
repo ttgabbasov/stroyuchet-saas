@@ -28,8 +28,8 @@ export default function HelpScreen() {
                     />
                     <HelpItem
                         icon={<FileText color="#94A3B8" size={20} />}
-                        label="База знаний (FAQ)"
-                        onPress={() => Linking.openURL('https://tgabbasov.store/help')}
+                        label="Документация и инструкции"
+                        onPress={() => Linking.openURL('http://docs.tgabbasov.store')}
                     />
                     <HelpItem
                         icon={<Phone color="#94A3B8" size={20} />}

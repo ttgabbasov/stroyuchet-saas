@@ -109,7 +109,7 @@ export default function HelpPage() {
         {/* Documentation */}
         <Card padding="lg">
           <a
-            href="https://docs.stroyuchet.ru"
+            href="http://docs.tgabbasov.store"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3"

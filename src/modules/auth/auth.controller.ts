@@ -218,8 +218,8 @@ export async function logout(
       await authService.logout(req.user.userId);
     }
 
-    // Очищаем cookie
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    // Очищаем cookie (путь должен совпадать с тем, где устанавливали — "/")
+    res.clearCookie('refreshToken', { path: '/' });
 
     res.json({
       success: true,

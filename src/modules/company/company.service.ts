@@ -1,6 +1,5 @@
-
 import { prisma } from '../../lib/prisma';
-import { NotFoundError } from '../../middleware/error.middleware';
+import { NotFoundError } from '../../lib/errors';
 
 /**
  * Обновление данных компании
@@ -34,7 +33,6 @@ export async function getCompany(companyId: string) {
     const company = await prisma.company.findUnique({
         where: { id: companyId },
         include: {
-            subscription: true, // Включаем подписку, если она есть
             _count: {
                 select: {
                     users: true,
@@ -49,12 +47,13 @@ export async function getCompany(companyId: string) {
     }
 
     // Формируем ответ, похожий на то, что ждёт фронтенд (Store)
+    // Данные подписки хранятся прямо в модели Company
     return {
         id: company.id,
         name: company.name,
-        plan: company.subscription?.plan || 'FREE',
-        maxUsers: company.subscription?.maxUsers || 1,
-        maxProjects: company.subscription?.maxProjects || 1,
+        plan: company.plan || 'FREE',
+        maxUsers: company.maxUsers || 1,
+        maxProjects: company.maxProjects || 1,
         usersCount: company._count.users,
         projectsCount: company._count.projects,
         createdAt: company.createdAt,

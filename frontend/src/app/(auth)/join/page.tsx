@@ -31,7 +31,9 @@ interface InviteInfo {
     expiresAt: string;
 }
 
-export default function JoinPage() {
+import { Suspense } from 'react';
+
+function JoinPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const code = searchParams.get('code');
@@ -44,7 +46,7 @@ export default function JoinPage() {
     const {
         register,
         handleSubmit,
-        setValue,
+        width,
         formState: { errors, isSubmitting },
     } = useForm<JoinForm>({
         resolver: zodResolver(joinSchema),
@@ -171,5 +173,18 @@ export default function JoinPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function JoinPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+                <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                <p className="text-muted-foreground">Загрузка...</p>
+            </div>
+        }>
+            <JoinPageContent />
+        </Suspense>
     );
 }

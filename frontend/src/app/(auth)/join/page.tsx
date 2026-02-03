@@ -46,7 +46,7 @@ function JoinPageContent() {
     const {
         register,
         handleSubmit,
-        width,
+        setValue,
         formState: { errors, isSubmitting },
     } = useForm<JoinForm>({
         resolver: zodResolver(joinSchema),

@@ -102,36 +102,60 @@ export interface ApiResponse<T> {
 // Helper Functions
 // ============================================
 
-export async function apiGet<T>(url: string, params?: Record<string, any>): Promise<T> {
-  const { data } = await api.get<ApiResponse<T>>(url, { params });
-  if (!data.success) {
-    throw new Error(data.error?.message || 'Request failed');
+// Helper to extract error message
+function handleApiError(error: any): never {
+  if (axios.isAxiosError(error) && error.response?.data?.error?.message) {
+    throw new Error(error.response.data.error.message);
   }
-  return data.data;
+  throw error;
+}
+
+export async function apiGet<T>(url: string, params?: Record<string, any>): Promise<T> {
+  try {
+    const { data } = await api.get<ApiResponse<T>>(url, { params });
+    if (!data.success) {
+      throw new Error(data.error?.message || 'Request failed');
+    }
+    return data.data;
+  } catch (error) {
+    handleApiError(error);
+  }
 }
 
 export async function apiPost<T>(url: string, body?: any): Promise<T> {
-  const { data } = await api.post<ApiResponse<T>>(url, body);
-  if (!data.success) {
-    throw new Error(data.error?.message || 'Request failed');
+  try {
+    const { data } = await api.post<ApiResponse<T>>(url, body);
+    if (!data.success) {
+      throw new Error(data.error?.message || 'Request failed');
+    }
+    return data.data;
+  } catch (error) {
+    handleApiError(error);
   }
-  return data.data;
 }
 
 export async function apiPatch<T>(url: string, body?: any): Promise<T> {
-  const { data } = await api.patch<ApiResponse<T>>(url, body);
-  if (!data.success) {
-    throw new Error(data.error?.message || 'Request failed');
+  try {
+    const { data } = await api.patch<ApiResponse<T>>(url, body);
+    if (!data.success) {
+      throw new Error(data.error?.message || 'Request failed');
+    }
+    return data.data;
+  } catch (error) {
+    handleApiError(error);
   }
-  return data.data;
 }
 
 export async function apiDelete<T = void>(url: string): Promise<T> {
-  const { data } = await api.delete<ApiResponse<T>>(url);
-  if (!data.success) {
-    throw new Error(data.error?.message || 'Request failed');
+  try {
+    const { data } = await api.delete<ApiResponse<T>>(url);
+    if (!data.success) {
+      throw new Error(data.error?.message || 'Request failed');
+    }
+    return data.data;
+  } catch (error) {
+    handleApiError(error);
   }
-  return data.data;
 }
 
 export default api;

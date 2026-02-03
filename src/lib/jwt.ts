@@ -154,9 +154,7 @@ function parseExpiresIn(expires: string): number {
 
 export const REFRESH_TOKEN_COOKIE_OPTIONS = {
   httpOnly: true,
-  // Если это продакшн, но мы фиксим проблемы с прокси, разрешаем secure: false временно для отладки
-  // или если ADMIN_EMAILS прописан (индикатор ручного управления)
-  secure: process.env.NODE_ENV === 'production' && !process.env.ADMIN_EMAILS,
+  secure: true, // КРИТИЧЕСКИ ВАЖНО для HTTPS, иначе браузер не отправит куку
   sameSite: 'lax' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/',

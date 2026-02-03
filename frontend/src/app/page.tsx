@@ -126,6 +126,101 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Use Cases / Examples */}
+      <section className="py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Бизнес-кейсы: Как «СтройУчёт» меняет работу</h2>
+            <p className="mt-4 text-muted-foreground text-lg">Реальные примеры того, как сервис решает проблемы на стройке</p>
+          </div>
+
+          <div className="space-y-16">
+            {/* Example 1 */}
+            <div className="flex flex-col md:flex-row gap-12 items-center">
+              <div className="flex-1 space-y-4">
+                <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">1</div>
+                <h3 className="text-2xl font-bold">Прозрачность подотчётных средств</h3>
+                <p className="text-muted-foreground text-lg italic">«Где деньги, которые я выдал на материалы?»</p>
+                <div className="p-6 rounded-2xl bg-muted/40 border-l-4 border-primary-500">
+                  <p className="font-semibold mb-2">Пример:</p>
+                  <p className="text-sm">Прораб Иван получил 50 000 ₽ на покупку расходников. В приложении он сразу отмечает получение аванса (ADVANCE). По мере покупок он прикрепляет фото чеков. Вы в реальном времени видите остаток у него в руках. Никаких «потерянных» чеков в конце недели.</p>
+                </div>
+              </div>
+              <div className="flex-1 w-full bg-muted rounded-2xl aspect-video flex items-center justify-center p-8 border">
+                <div className="space-y-3 w-full">
+                  <div className="h-8 w-full bg-background rounded border-b flex items-center px-3 justify-between">
+                    <span className="text-xs font-medium">Аванс: Прораб Иван</span>
+                    <span className="text-xs text-primary-600 font-bold">+50 000 ₽</span>
+                  </div>
+                  <div className="h-8 w-4/5 bg-background rounded border-b flex items-center px-3 justify-between opacity-80">
+                    <span className="text-xs">Расход: Смеси (чек №4)</span>
+                    <span className="text-xs text-red-500">-12 400 ₽</span>
+                  </div>
+                  <div className="h-8 w-3/4 bg-background rounded border-b flex items-center px-3 justify-between opacity-60">
+                    <span className="text-xs">Расход: Крепеж (фото)</span>
+                    <span className="text-xs text-red-500">-3 200 ₽</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Example 2 */}
+            <div className="flex flex-col md:flex-row-reverse gap-12 items-center">
+              <div className="flex-1 space-y-4">
+                <div className="h-10 w-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold">2</div>
+                <h3 className="text-2xl font-bold">Реальная прибыль по объекту</h3>
+                <p className="text-muted-foreground text-lg italic">«Кажется, мы в плюсе, но почему на счету пусто?»</p>
+                <div className="p-6 rounded-2xl bg-muted/40 border-l-4 border-success-500">
+                  <p className="font-semibold mb-2">Пример:</p>
+                  <p className="text-sm">Объект на ул. Ленина кажется прибыльным: заказчик заплатил 1 млн. Однако, после учёта всех мелких трат, скрытых выплат рабочим и логистики, система показывает чистую прибыль 120 000 ₽ вместо ожидаемых 300 000 ₽. Вы видите «дыры» в бюджете до того, как они стали критичными.</p>
+                </div>
+              </div>
+              <div className="flex-1 w-full bg-muted rounded-2xl aspect-video flex items-center justify-center p-8 border">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-success-600 mb-2">120 000 ₽</div>
+                  <div className="text-sm text-muted-foreground">Чистая маржа вместо 300к</div>
+                  <div className="mt-4 h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-success-500 w-1/3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Example 3 */}
+            <div className="flex flex-col md:flex-row gap-12 items-center">
+              <div className="flex-1 space-y-4">
+                <div className="h-10 w-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">3</div>
+                <h3 className="text-2xl font-bold">Исключение «забытых» трат</h3>
+                <p className="text-muted-foreground text-lg italic">«Забыл записать 15к за доставку арматуры...»</p>
+                <div className="p-6 rounded-2xl bg-muted/40 border-l-4 border-purple-500">
+                  <p className="font-semibold mb-2">Пример:</p>
+                  <p className="text-sm">Бухгалтер видит в истории, кто и когда создал транзакцию. Если цифры не сходятся с банком, можно открутить историю (AUDIT LOG) и найти, кто из сотрудников удалил или изменил сумму операции неделю назад. Порядок дисциплинирует команду.</p>
+                </div>
+              </div>
+              <div className="flex-1 w-full bg-muted rounded-2xl aspect-video flex items-center justify-center p-8 border">
+                <div className="w-full space-y-2 p-4 bg-white rounded-lg shadow-sm border text-[10px] sm:text-xs">
+                  <div className="flex justify-between text-gray-400 border-b pb-1">
+                    <span>Сотрудник</span>
+                    <span>Действие</span>
+                    <span>Время</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b">
+                    <span className="font-medium">Сергей (Прораб)</span>
+                    <span className="text-red-500">Удалил расход 5000 ₽</span>
+                    <span>14:32</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Анна (Бухг)</span>
+                    <span className="text-blue-500">Изменила сумму: 10к → 15к</span>
+                    <span>Вчера</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Trust Section / About */}
       <section className="py-24">
         <div className="container mx-auto px-4">

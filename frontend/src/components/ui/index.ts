@@ -9,3 +9,4 @@ export * from './amount';
 export * from './select';
 export * from './money-input';
 export * from './theme-toggle';
+export * from './dialog';

@@ -17,6 +17,7 @@ import {
 import { Card } from '@/components/ui';
 import { useUser, useCompany, useAuthStore } from '@/store/auth';
 import { ROLE_LABELS } from '@/types';
+import { AdminPanelLink } from '@/components/admin/AdminPanelLink';
 
 // ============================================
 // Settings Page
@@ -144,6 +145,9 @@ export default function SettingsPage() {
           </div>
         </div>
       </Card>
+
+      {/* Admin Panel Link (only for super admins) */}
+      <AdminPanelLink />
 
       {/* Menu Sections */}
       {menuItems.map((section) => (

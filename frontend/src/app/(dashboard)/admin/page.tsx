@@ -1,14 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowLeft, Users, Building2, Crown, Calendar, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { Card, Button } from '@/components/ui';
-import { apiGet } from '@/lib/api';
-import { formatDate } from '@/types';
+import {
+    Users, Building2, TrendingUp, DollarSign,
+    Search, Filter, Trash2, Edit, Shield,
+    UserCog, Calendar, Activity, AlertCircle
+} from 'lucide-react';
+import { Card, Button, Input } from '@/components/ui';
+import { apiGet, apiDelete, apiPatch } from '@/lib/api';
+import { Plan } from '@prisma/client';
 
-interface AdminUser {
+// ============================================
+// Types
+// ============================================
+
+interface AdminStats {
+    users: {
+        total: number;
+        newLast30Days: number;
+    };
+    companies: {
+        total: number;
+        newLast30Days: number;
+        byPlan: {
+            FREE: number;
+            PRO: number;
+            BUSINESS: number;
+        };
+        active: {
+            PRO: number;
+            BUSINESS: number;
+        };
+    };
+    projects: {
+        total: number;
+    };
+    transactions: {
+        total: number;
+    };
+    revenue: {
+        mrr: number;
+        currency: string;
+    };
+}
+
+interface UserData {
     id: string;
     name: string;
     email: string;
@@ -18,7 +55,7 @@ interface AdminUser {
     company: {
         id: string;
         name: string;
-        plan: string;
+        plan: Plan;
         planExpiresAt: string | null;
         createdAt: string;
         usersCount: number;
@@ -26,184 +63,365 @@ interface AdminUser {
     } | null;
 }
 
-const PLAN_LABELS: Record<string, string> = {
-    FREE: 'Бесплатный',
-    BASIC: 'Базовый',
-    PRO: 'Профессиональный',
-    ULTIMATE: 'Максимальный',
-};
-
-const PLAN_COLORS: Record<string, string> = {
-    FREE: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
-    BASIC: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-    PRO: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
-    ULTIMATE: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-};
+// ============================================
+// Admin Dashboard
+// ============================================
 
 export default function AdminPage() {
     const router = useRouter();
+    const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null);
+    const [stats, setStats] = useState<AdminStats | null>(null);
+    const [users, setUsers] = useState<UserData[]>([]);
+    const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedPlan, setSelectedPlan] = useState<Plan | 'ALL'>('ALL');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const { data: users, isLoading, error } = useQuery<AdminUser[]>({
-        queryKey: ['admin', 'users'],
-        queryFn: async () => {
-            const res = await apiGet<{ data: AdminUser[] }>('/api/admin/users');
-            return res.data;
-        },
-    });
+    // Проверка прав супер-админа
+    useEffect(() => {
+        checkSuperAdmin();
+    }, []);
 
-    const filteredUsers = users?.filter(user =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.company?.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+    // Загрузка данных
+    useEffect(() => {
+        if (isSuperAdmin) {
+            loadStats();
+            loadUsers();
+        }
+    }, [isSuperAdmin]);
 
-    if (error) {
+    // Фильтрация пользователей
+    useEffect(() => {
+        let filtered = users;
+
+        // Поиск
+        if (searchQuery) {
+            filtered = filtered.filter(user =>
+                user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                user.company?.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Фильтр по тарифу
+        if (selectedPlan !== 'ALL') {
+            filtered = filtered.filter(user => user.company?.plan === selectedPlan);
+        }
+
+        setFilteredUsers(filtered);
+    }, [searchQuery, selectedPlan, users]);
+
+    const checkSuperAdmin = async () => {
+        try {
+            await apiGet('/admin/me');
+            setIsSuperAdmin(true);
+        } catch (err: any) {
+            setIsSuperAdmin(false);
+            if (err?.response?.status === 403) {
+                router.push('/dashboard');
+            }
+        }
+    };
+
+    const loadStats = async () => {
+        try {
+            const data = await apiGet<AdminStats>('/admin/stats');
+            setStats(data);
+        } catch (err: any) {
+            setError('Ошибка загрузки статистики');
+        }
+    };
+
+    const loadUsers = async () => {
+        try {
+            setLoading(true);
+            const data = await apiGet<UserData[]>('/admin/users');
+            setUsers(data);
+            setFilteredUsers(data);
+        } catch (err: any) {
+            setError('Ошибка загрузки пользователей');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId: string, userName: string) => {
+        if (!confirm(`Удалить пользователя "${userName}"? Это действие необратимо!`)) {
+            return;
+        }
+
+        try {
+            await apiDelete(`/admin/users/${userId}`);
+            loadUsers();
+        } catch (err: any) {
+            alert('Ошибка удаления пользователя: ' + (err?.response?.data?.error?.message || err.message));
+        }
+    };
+
+    const handleDeleteCompany = async (companyId: string, companyName: string) => {
+        if (!confirm(`Удалить компанию "${companyName}" и ВСЕХ её пользователей? Это действие необратимо!`)) {
+            return;
+        }
+
+        try {
+            await apiDelete(`/admin/companies/${companyId}`);
+            loadUsers();
+        } catch (err: any) {
+            alert('Ошибка удаления компании: ' + (err?.response?.data?.error?.message || err.message));
+        }
+    };
+
+    const handleChangePlan = async (companyId: string, companyName: string) => {
+        const newPlan = prompt(`Изменить тариф для "${companyName}"\nВведите: FREE, PRO или BUSINESS`);
+
+        if (!newPlan || !['FREE', 'PRO', 'BUSINESS'].includes(newPlan.toUpperCase())) {
+            return;
+        }
+
+        let expiresAt = null;
+        if (newPlan.toUpperCase() !== 'FREE') {
+            const daysStr = prompt('На сколько дней выдать тариф? (оставьте пустым для бессрочного)');
+            if (daysStr) {
+                const days = parseInt(daysStr);
+                if (!isNaN(days) && days > 0) {
+                    const date = new Date();
+                    date.setDate(date.getDate() + days);
+                    expiresAt = date.toISOString();
+                }
+            }
+        }
+
+        try {
+            await apiPatch(`/admin/companies/${companyId}/plan`, {
+                plan: newPlan.toUpperCase(),
+                expiresAt,
+            });
+            loadUsers();
+            loadStats();
+        } catch (err: any) {
+            alert('Ошибка изменения тарифа: ' + (err?.response?.data?.error?.message || err.message));
+        }
+    };
+
+    // Проверка доступа
+    if (isSuperAdmin === null) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center p-4">
-                <Card padding="lg" className="max-w-md w-full text-center">
-                    <p className="text-danger-600 dark:text-danger-400">
-                        {(error as any).message || 'Ошибка загрузки данных'}
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <Shield className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+                    <p className="text-muted-foreground">Проверка прав доступа...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (isSuperAdmin === false) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Card padding="lg" className="max-w-md text-center">
+                    <AlertCircle className="w-12 h-12 text-danger mx-auto mb-4" />
+                    <h1 className="text-xl font-bold mb-2">Доступ запрещен</h1>
+                    <p className="text-muted-foreground mb-4">
+                        У вас нет прав для доступа к панели администратора
                     </p>
-                    <Button onClick={() => router.back()} className="mt-4">
-                        Назад
+                    <Button onClick={() => router.push('/dashboard')}>
+                        Вернуться на главную
                     </Button>
                 </Card>
             </div>
         );
     }
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full" />
-            </div>
-        );
-    }
+    const formatCurrency = (cents: number) => {
+        return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB',
+            minimumFractionDigits: 0,
+        }).format(cents);
+    };
 
-    const stats = {
-        totalUsers: users?.length || 0,
-        totalCompanies: new Set(users?.map(u => u.company?.id).filter(Boolean)).size,
-        freeUsers: users?.filter(u => u.company?.plan === 'FREE').length || 0,
-        paidUsers: users?.filter(u => u.company?.plan !== 'FREE').length || 0,
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('ru-RU');
+    };
+
+    const getPlanBadgeColor = (plan: Plan) => {
+        switch (plan) {
+            case 'FREE': return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+            case 'PRO': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+            case 'BUSINESS': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
+            default: return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+        }
     };
 
     return (
-        <div className="min-h-screen bg-background pb-20">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
-                <div className="px-4 h-14 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => router.back()} className="p-2 -ml-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground">
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-                        <h1 className="text-lg font-semibold text-foreground">Панель администратора</h1>
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <Shield className="w-8 h-8 text-primary" />
+                        Панель администратора
+                    </h1>
+                    <p className="text-muted-foreground mt-1">
+                        Управление пользователями и компаниями
+                    </p>
+                </div>
+            </div>
+
+            {error && (
+                <Card padding="sm" className="mb-6 bg-danger-50 dark:bg-danger-900/10 border-danger-200 dark:border-danger-800">
+                    <p className="text-danger-700 dark:text-danger-300">{error}</p>
+                </Card>
+            )}
+
+            {/* Stats */}
+            {stats && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <Card padding="md">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Всего пользователей</p>
+                                <p className="text-2xl font-bold">{stats.users.total}</p>
+                                <p className="text-xs text-success mt-1">
+                                    +{stats.users.newLast30Days} за 30 дней
+                                </p>
+                            </div>
+                            <Users className="w-10 h-10 text-primary opacity-20" />
+                        </div>
+                    </Card>
+
+                    <Card padding="md">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Всего компаний</p>
+                                <p className="text-2xl font-bold">{stats.companies.total}</p>
+                                <p className="text-xs text-success mt-1">
+                                    +{stats.companies.newLast30Days} за 30 дней
+                                </p>
+                            </div>
+                            <Building2 className="w-10 h-10 text-primary opacity-20" />
+                        </div>
+                    </Card>
+
+                    <Card padding="md">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">MRR</p>
+                                <p className="text-2xl font-bold">{formatCurrency(stats.revenue.mrr)}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    PRO: {stats.companies.active.PRO} | BIZ: {stats.companies.active.BUSINESS}
+                                </p>
+                            </div>
+                            <DollarSign className="w-10 h-10 text-success opacity-20" />
+                        </div>
+                    </Card>
+
+                    <Card padding="md">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Всего проектов</p>
+                                <p className="text-2xl font-bold">{stats.projects.total}</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {stats.transactions.total} транзакций
+                                </p>
+                            </div>
+                            <Activity className="w-10 h-10 text-primary opacity-20" />
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* Plan Stats */}
+            {stats && (
+                <Card padding="md" className="mb-8">
+                    <h2 className="text-lg font-semibold mb-4">Распределение по тарифам</h2>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">FREE</p>
+                            <p className="text-2xl font-bold text-gray-600">{stats.companies.byPlan.FREE}</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">PRO</p>
+                            <p className="text-2xl font-bold text-blue-600">{stats.companies.byPlan.PRO}</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">BUSINESS</p>
+                            <p className="text-2xl font-bold text-purple-600">{stats.companies.byPlan.BUSINESS}</p>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
+            {/* Users Table */}
+            <Card padding="md">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Все пользователи ({filteredUsers.length})</h2>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            placeholder="Поиск..."
+                            leftIcon={<Search className="w-4 h-4" />}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-64"
+                        />
+                        <select
+                            value={selectedPlan}
+                            onChange={(e) => setSelectedPlan(e.target.value as Plan | 'ALL')}
+                            className="px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
+                        >
+                            <option value="ALL">Все тарифы</option>
+                            <option value="FREE">FREE</option>
+                            <option value="PRO">PRO</option>
+                            <option value="BUSINESS">BUSINESS</option>
+                        </select>
                     </div>
                 </div>
-            </header>
 
-            <div className="p-4 space-y-6 max-w-7xl mx-auto">
-                {/* Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card padding="lg">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-900/10">
-                                <Users className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Пользователей</p>
-                                <p className="text-2xl font-bold text-foreground">{stats.totalUsers}</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card padding="lg">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/10">
-                                <Building2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Компаний</p>
-                                <p className="text-2xl font-bold text-foreground">{stats.totalCompanies}</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card padding="lg">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
-                                <Users className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Free</p>
-                                <p className="text-2xl font-bold text-foreground">{stats.freeUsers}</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card padding="lg">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-lg bg-success-50 dark:bg-success-900/10">
-                                <Crown className="w-5 h-5 text-success-600 dark:text-success-400" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Платят</p>
-                                <p className="text-2xl font-bold text-foreground">{stats.paidUsers}</p>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-
-                {/* Search */}
-                <Card padding="lg">
-                    <input
-                        type="text"
-                        placeholder="Поиск по имени, email или компании..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                </Card>
-
-                {/* Users Table */}
-                <Card padding="none">
+                {loading ? (
+                    <div className="text-center py-8">
+                        <p className="text-muted-foreground">Загрузка...</p>
+                    </div>
+                ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-border bg-muted/50">
-                                    <th className="text-left p-4 text-sm font-semibold text-foreground">Пользователь</th>
-                                    <th className="text-left p-4 text-sm font-semibold text-foreground">Компания</th>
-                                    <th className="text-left p-4 text-sm font-semibold text-foreground">Тариф</th>
-                                    <th className="text-left p-4 text-sm font-semibold text-foreground">Роль</th>
-                                    <th className="text-left p-4 text-sm font-semibold text-foreground">Статистика</th>
-                                    <th className="text-left p-4 text-sm font-semibold text-foreground">Дата</th>
+                            <thead className="border-b border-border">
+                                <tr className="text-left text-sm text-muted-foreground">
+                                    <th className="pb-3 font-medium">Пользователь</th>
+                                    <th className="pb-3 font-medium">Компания</th>
+                                    <th className="pb-3 font-medium">Тариф</th>
+                                    <th className="pb-3 font-medium">Роль</th>
+                                    <th className="pb-3 font-medium">Проекты</th>
+                                    <th className="pb-3 font-medium">Дата рег.</th>
+                                    <th className="pb-3 font-medium text-right">Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredUsers.map((user) => (
-                                    <tr key={user.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                                        <td className="p-4">
+                                    <tr key={user.id} className="border-b border-border hover:bg-muted/50">
+                                        <td className="py-3">
                                             <div>
-                                                <p className="font-medium text-foreground">{user.name}</p>
+                                                <p className="font-medium">{user.name}</p>
                                                 <p className="text-sm text-muted-foreground">{user.email}</p>
-                                                {user.phone && <p className="text-xs text-muted-foreground">{user.phone}</p>}
                                             </div>
                                         </td>
-                                        <td className="p-4">
+                                        <td className="py-3">
                                             {user.company ? (
                                                 <div>
-                                                    <p className="font-medium text-foreground">{user.company.name}</p>
-                                                    <p className="text-xs text-muted-foreground">ID: {user.company.id.slice(0, 8)}</p>
+                                                    <p className="font-medium">{user.company.name}</p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {user.company.usersCount} польз.
+                                                    </p>
                                                 </div>
                                             ) : (
-                                                <span className="text-sm text-muted-foreground">—</span>
+                                                <span className="text-muted-foreground">-</span>
                                             )}
                                         </td>
-                                        <td className="p-4">
+                                        <td className="py-3">
                                             {user.company && (
                                                 <div>
-                                                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${PLAN_COLORS[user.company.plan] || PLAN_COLORS.FREE}`}>
-                                                        {PLAN_LABELS[user.company.plan] || user.company.plan}
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPlanBadgeColor(user.company.plan)}`}>
+                                                        {user.company.plan}
                                                     </span>
                                                     {user.company.planExpiresAt && (
                                                         <p className="text-xs text-muted-foreground mt-1">
@@ -213,49 +431,64 @@ export default function AdminPage() {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="p-4">
-                                            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${user.role === 'OWNER'
-                                                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                                }`}>
-                                                {user.role}
+                                        <td className="py-3">
+                                            <span className="text-sm">{user.role}</span>
+                                        </td>
+                                        <td className="py-3">
+                                            <span className="text-sm">{user.company?.projectsCount || 0}</span>
+                                        </td>
+                                        <td className="py-3">
+                                            <span className="text-sm text-muted-foreground">
+                                                {formatDate(user.createdAt)}
                                             </span>
                                         </td>
-                                        <td className="p-4">
-                                            {user.company && (
-                                                <div className="flex gap-3 text-xs text-muted-foreground">
-                                                    <div className="flex items-center gap-1">
-                                                        <Users className="w-3 h-3" />
-                                                        {user.company.usersCount}
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <TrendingUp className="w-3 h-3" />
-                                                        {user.company.projectsCount}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="p-4">
-                                            <p className="text-sm text-muted-foreground">
-                                                {formatDate(user.createdAt)}
-                                            </p>
+                                        <td className="py-3">
+                                            <div className="flex items-center justify-end gap-2">
+                                                {user.company && user.role === 'OWNER' && (
+                                                    <>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => handleChangePlan(user.company!.id, user.company!.name)}
+                                                            title="Изменить тариф"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => handleDeleteCompany(user.company!.id, user.company!.name)}
+                                                            className="text-danger hover:bg-danger/10"
+                                                            title="Удалить компанию"
+                                                        >
+                                                            <Building2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </>
+                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => handleDeleteUser(user.id, user.name)}
+                                                    className="text-danger hover:bg-danger/10"
+                                                    title="Удалить пользователя"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                </Card>
 
-                {filteredUsers.length === 0 && (
-                    <div className="text-center py-12">
-                        <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                        <p className="text-muted-foreground">
-                            {searchQuery ? 'Пользователи не найдены' : 'Нет пользователей'}
-                        </p>
+                        {filteredUsers.length === 0 && (
+                            <div className="text-center py-8">
+                                <p className="text-muted-foreground">Пользователи не найдены</p>
+                            </div>
+                        )}
                     </div>
                 )}
-            </div>
+            </Card>
         </div>
     );
 }

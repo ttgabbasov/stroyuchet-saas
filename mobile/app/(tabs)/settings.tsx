@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from '../../lib/auth';
 import { useRouter } from 'expo-router';
 import { Linking } from 'react-native';
+import { AdminPanelButton } from '../../components/AdminPanelButton';
 
 export default function SettingsScreen() {
     const user = useAuthStore((state) => state.user);
@@ -64,6 +65,9 @@ export default function SettingsScreen() {
                         </View>
                     </View>
                 </View>
+
+                {/* Admin Panel (only for super admins) */}
+                <AdminPanelButton />
 
                 {/* Menu Sections */}
                 <MenuSection title="Аккаунт">

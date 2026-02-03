@@ -11,12 +11,13 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0F172A"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.tgabbasov.stroyuchet",
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "backgroundColor": "#0F172A"
     },
     "android": {
       "package": "com.tgabbasov.stroyuchet",
@@ -25,7 +26,8 @@
         "backgroundColor": "#0F172A"
       },
       "edgeToEdgeEnabled": true,
-      "userInterfaceStyle": "dark"
+      "userInterfaceStyle": "dark",
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",

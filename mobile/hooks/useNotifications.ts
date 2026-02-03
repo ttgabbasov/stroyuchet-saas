@@ -16,8 +16,8 @@ Notifications.setNotificationHandler({
 export function useNotifications() {
     const [expoPushToken, setExpoPushToken] = useState('');
     const [notification, setNotification] = useState<Notifications.Notification | null>(null);
-    const notificationListener = useRef<Notifications.Subscription>();
-    const responseListener = useRef<Notifications.Subscription>();
+    const notificationListener = useRef<Notifications.Subscription>(null);
+    const responseListener = useRef<Notifications.Subscription>(null);
 
     useEffect(() => {
         registerForPushNotificationsAsync().then(token => {
@@ -40,10 +40,10 @@ export function useNotifications() {
 
         return () => {
             if (notificationListener.current) {
-                Notifications.removeNotificationSubscription(notificationListener.current);
+                notificationListener.current.remove();
             }
             if (responseListener.current) {
-                Notifications.removeNotificationSubscription(responseListener.current);
+                responseListener.current.remove();
             }
         };
     }, []);
@@ -80,6 +80,11 @@ async function registerForPushNotificationsAsync() {
         const projectId =
             Constants?.expoConfig?.extra?.eas?.projectId ??
             Constants?.easConfig?.projectId;
+
+        if (!projectId) {
+            console.warn('Project ID not found. Skipping push token registration (expected in Expo Go without EAS).');
+            return;
+        }
 
         try {
             token = (await Notifications.getExpoPushTokenAsync({

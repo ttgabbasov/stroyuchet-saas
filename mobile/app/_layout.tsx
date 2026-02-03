@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -5,11 +6,14 @@ import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { PortalProvider } from '@gorhom/portal';
+import '../global.css';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
 import { useAuthStore } from '../lib/auth';
-import { useNotifications } from '../hooks/useNotifications';
+// import { useNotifications } from '../hooks/useNotifications';
 
 
 export {
@@ -61,7 +65,7 @@ function RootLayoutNav() {
   const router = useRouter();
 
   // Initialize notifications
-  useNotifications();
+  // useNotifications();
 
   useEffect(() => {
     // Basic redirect logic if not logged in
@@ -72,13 +76,17 @@ function RootLayoutNav() {
   }, [accessToken]);
 
   return (
-    <ThemeProvider value={DarkTheme}>
-      <Stack>
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PortalProvider>
+        <ThemeProvider value={DarkTheme}>
+          <Stack>
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          </Stack>
+        </ThemeProvider>
+      </PortalProvider>
+    </GestureHandlerRootView>
   );
 }
 

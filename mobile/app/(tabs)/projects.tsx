@@ -1,8 +1,10 @@
 import { View, Text, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Plus, Building2, MapPin, ChevronRight } from 'lucide-react-native';
-import { useProjects, Project } from '../hooks/useProjects';
-import { formatMoney } from '../lib/utils';
+import { useProjects, Project } from '../../hooks/useProjects';
+import { useAuthStore } from '../../lib/auth';
+import { apiGet } from '../../lib/api';
+import { formatMoney } from '../../lib/utils';
 import { useState } from 'react';
 
 export default function ProjectsScreen() {
@@ -20,17 +22,23 @@ export default function ProjectsScreen() {
                 {/* Header */}
                 <View className="flex-row justify-between items-center mb-6">
                     <Text className="text-white text-2xl font-bold">Объекты</Text>
-                    <TouchableOpacity className="w-10 h-10 bg-primary rounded-xl items-center justify-center">
+                    <TouchableOpacity
+                        onPress={() => {
+                            // TODO: Open Create Project Modal
+                            alert('Функция создания объекта будет доступна в следующем обновлении');
+                        }}
+                        className="w-10 h-10 bg-primary rounded-xl items-center justify-center"
+                    >
                         <Plus color="#fff" size={24} />
                     </TouchableOpacity>
                 </View>
 
                 {/* Search */}
-                <View className="bg-card flex-row items-center px-4 h-12 rounded-2xl border border-secondary mb-6">
+                <View className="bg-white/10 flex-row items-center px-4 h-12 rounded-2xl border border-white/20 mb-6">
                     <Search color="#94A3B8" size={20} />
                     <TextInput
                         placeholder="Поиск объектов..."
-                        placeholderTextColor="#94A3B8"
+                        placeholderTextColor="#9CA3AF"
                         className="flex-1 ml-3 text-white"
                         value={searchQuery}
                         onChangeText={setSearchQuery}

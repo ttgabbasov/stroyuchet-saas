@@ -8,17 +8,20 @@ import {
   CheckCircle2,
   ChevronRight,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Plus
 } from 'lucide-react-native';
-import { useDashboardData } from '../hooks/useDashboardData';
-import { formatMoney } from '../lib/utils';
-import { useAuthStore } from '../lib/auth';
-import CreateTransactionModal from '../components/CreateTransactionModal';
+import { useDashboardData } from '../../hooks/useDashboardData';
+import { formatMoney } from '../../lib/utils';
+import { useAuthStore } from '../../lib/auth';
+import CreateTransactionModal from '../../components/CreateTransactionModal';
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const { summary, transactions, loading, refreshing, refresh, error } = useDashboardData();
   const user = useAuthStore((state) => state.user);
+  const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'INCOME' | 'EXPENSE' | 'INTERNAL'>('EXPENSE');
 
@@ -43,15 +46,30 @@ export default function DashboardScreen() {
             <Text className="text-muted text-sm">Добро пожаловать,</Text>
             <Text className="text-white text-2xl font-bold">{firstName}</Text>
           </View>
-          <View className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center border border-primary/30">
+          <TouchableOpacity
+            onPress={() => router.push('/more')}
+            className="w-12 h-12 rounded-full bg-primary/20 items-center justify-center border border-primary/30"
+          >
             <Text className="text-primary font-bold text-lg">{firstName ? firstName[0] : 'U'}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Status Notification - Show error if any */}
         {error ? (
           <View className="bg-danger/10 border border-danger/20 rounded-2xl p-4 flex-row items-center mb-6">
             <Text className="text-danger flex-1 ml-3">{error}</Text>
+          </View>
+        ) : (!summary) ? (
+          <View className="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex-row items-center mb-6">
+            <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center mr-3">
+              <Plus color="#2563EB" size={20} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white font-bold">Нет объектов в работе</Text>
+              <TouchableOpacity onPress={() => router.push('/projects')}>
+                <Text className="text-primary text-xs font-semibold">Добавить первый объект</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ) : (
           <View className="bg-success/20 border border-success/30 rounded-2xl p-4 flex-row items-center mb-6">

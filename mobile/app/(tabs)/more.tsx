@@ -11,10 +11,14 @@ import {
     HelpCircle,
     LogOut,
     ChevronRight,
-    UserPlus
+    UserPlus,
+    Send
 } from 'lucide-react-native';
-import { useAuthStore } from '../lib/auth';
+import { useAuthStore } from '../../lib/auth';
+import { apiGet } from '../../lib/api';
+import { formatMoney } from '../../lib/utils';
 import { useRouter } from 'expo-router';
+import { Linking } from 'react-native';
 
 export default function MoreScreen() {
     const user = useAuthStore((state) => state.user);
@@ -35,7 +39,7 @@ export default function MoreScreen() {
                 </View>
 
                 {/* Profile Card */}
-                <View className="bg-card border border-white/5 rounded-3xl p-6 mb-8 flex-row items-center">
+                <View className="bg-white/10 border border-white/20 rounded-3xl p-6 mb-8 flex-row items-center">
                     <View className="w-16 h-16 rounded-full bg-primary/20 items-center justify-center border border-primary/30 mr-4">
                         <Text className="text-primary font-bold text-2xl">{user?.name?.charAt(0) || 'Т'}</Text>
                     </View>
@@ -50,27 +54,69 @@ export default function MoreScreen() {
 
                 {/* Menu Sections */}
                 <MenuSection title="Аккаунт">
-                    <MenuItem icon={<User color="#94A3B8" size={20} />} label="Профиль" />
-                    <MenuItem icon={<Building2 color="#94A3B8" size={20} />} label="Компания" value="Домант" />
+                    <MenuItem
+                        icon={<User color="#94A3B8" size={20} />}
+                        label="Профиль"
+                        onPress={() => alert('Профиль пользователя')}
+                    />
+                    <MenuItem
+                        icon={<Building2 color="#94A3B8" size={20} />}
+                        label="Компания"
+                        value="Домант"
+                        onPress={() => alert('Настройки компании')}
+                    />
                 </MenuSection>
 
                 <MenuSection title="Команда">
-                    <MenuItem icon={<Users color="#94A3B8" size={20} />} label="Пользователи" />
+                    <MenuItem
+                        icon={<Users color="#94A3B8" size={20} />}
+                        label="Пользователи"
+                        onPress={() => alert('Управление пользователями')}
+                    />
                     <MenuItem
                         icon={<UserPlus color="#2563EB" size={20} />}
                         label="Пригласить партнера"
                         labelColor="text-primary"
+                        onPress={() => alert('Приглашение партнера')}
                     />
                 </MenuSection>
 
                 <MenuSection title="Система">
-                    <MenuItem icon={<CreditCard color="#94A3B8" size={20} />} label="Подписка" value="Бизнес" />
-                    <MenuItem icon={<Bell color="#94A3B8" size={20} />} label="Уведомления" />
-                    <MenuItem icon={<Shield color="#94A3B8" size={20} />} label="Безопасность" />
+                    <MenuItem
+                        icon={<CreditCard color="#94A3B8" size={20} />}
+                        label="Подписка"
+                        value="Бизнес"
+                        onPress={() => alert('Настройки подписки')}
+                    />
+                    <MenuItem
+                        icon={<Bell color="#94A3B8" size={20} />}
+                        label="Уведомления"
+                        onPress={() => alert('Настройки уведомлений')}
+                    />
+                    <MenuItem
+                        icon={<Shield color="#94A3B8" size={20} />}
+                        label="Безопасность"
+                        onPress={() => alert('Настройки безопасности')}
+                    />
                 </MenuSection>
 
                 <MenuSection title="Поддержка">
-                    <MenuItem icon={<HelpCircle color="#94A3B8" size={20} />} label="Помощь" />
+                    <MenuItem
+                        icon={<Send color="#0088cc" size={20} />}
+                        label="Telegram Бот"
+                        value={user?.telegramId ? "Привязан" : "Не привязан"}
+                        onPress={() => {
+                            if (!user?.telegramId) {
+                                alert('Для работы бота его нужно привязать в настройках вашего аккаунта на сайте tgabbasov.store');
+                            }
+                            Linking.openURL('https://t.me/stroyuchet_bot');
+                        }}
+                    />
+                    <MenuItem
+                        icon={<HelpCircle color="#94A3B8" size={20} />}
+                        label="Помощь"
+                        onPress={() => alert('Служба поддержки')}
+                    />
                 </MenuSection>
 
                 {/* Logout */}
@@ -96,16 +142,19 @@ function MenuSection({ title, children }: { title: string, children: React.React
     return (
         <View className="mb-8">
             <Text className="text-muted text-[10px] uppercase font-bold tracking-widest mb-3 ml-2">{title}</Text>
-            <View className="bg-card border border-white/5 rounded-3xl overflow-hidden">
+            <View className="bg-white/10 border border-white/20 rounded-3xl overflow-hidden">
                 {children}
             </View>
         </View>
     );
 }
 
-function MenuItem({ icon, label, value, labelColor = "text-white" }: any) {
+function MenuItem({ icon, label, value, labelColor = "text-white", onPress }: any) {
     return (
-        <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-white/5 active:bg-white/5">
+        <TouchableOpacity
+            onPress={onPress}
+            className="flex-row items-center justify-between p-4 border-b border-white/5 active:bg-white/10"
+        >
             <View className="flex-row items-center">
                 <View className="mr-3">{icon}</View>
                 <Text className={`${labelColor} font-medium`}>{label}</Text>

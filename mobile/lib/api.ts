@@ -3,7 +3,7 @@ import { storage } from './storage';
 import { useAuthStore } from './auth';
 
 // UPDATE THIS TO YOUR SERVER IP
-const API_URL = 'http://31.129.97.194/api';
+const API_URL = 'http://tgabbasov.store/api';
 
 export const api: AxiosInstance = axios.create({
     baseURL: API_URL,

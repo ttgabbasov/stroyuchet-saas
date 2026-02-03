@@ -25,9 +25,22 @@ export function useReportsData() {
         setError(null);
 
         try {
-            // Fetch financial report (using available analytics endpoint)
-            const result = await apiGet<ReportData>('/transactions/analytics/reports/cash-flow');
-            setData(result);
+            // Fetch financial report summary (works better with current UI)
+            const result = await apiGet<any>('/transactions/analytics/summary');
+
+            // Map the result to match ReportData interface if needed
+            // The structure is almost identical
+            setData({
+                totalIncomeCents: result.totalIncomeCents,
+                totalExpenseCents: result.totalExpenseCents,
+                cashFlowCents: result.profitCents,
+                categories: result.byCategory.map((c: any) => ({
+                    name: c.categoryName,
+                    amountCents: c.totalCents,
+                    percentage: Math.round(c.percentage)
+                })),
+                monthlyTrend: result.monthlyTrend
+            });
         } catch (err: any) {
             setError(err.message || 'Ошибка загрузки отчетов');
             console.error('Reports fetch error:', err);

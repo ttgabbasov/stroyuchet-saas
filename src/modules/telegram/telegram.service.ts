@@ -534,9 +534,8 @@ export class TelegramBotService {
                 ctx.session.step = undefined;
                 ctx.session.transactionData = undefined;
                 ctx.session.editingTransactionId = undefined;
-                ctx.session.wizardMessageId = undefined;
-                await ctx.editMessageText('❌ Операция отменена.');
-                await ctx.reply('📱 Возврат в меню:', this.getMainMenu());
+                await this.cleanupActiveWizard(ctx); // Delete the wizard message
+                await ctx.reply('❌ Операция отменена.', this.getMainMenu()); // Send fresh menu
                 await ctx.answerCbQuery();
                 return;
             }
@@ -560,8 +559,8 @@ export class TelegramBotService {
 
             if (data === 'voice_cancel') {
                 ctx.session.pendingVoiceTx = undefined;
-                await ctx.editMessageText('❌ Операция отменена.');
-                await ctx.reply('📱 Возврат в меню:', this.getMainMenu());
+                await this.cleanupActiveWizard(ctx);
+                await ctx.reply('❌ Операция отменена.', this.getMainMenu());
                 await ctx.answerCbQuery();
                 return;
             }
@@ -931,15 +930,11 @@ export class TelegramBotService {
                 });
             }
 
-            await this.cleanupActiveWizard(ctx);
-            const msg = await ctx.reply(text, {
-                parse_mode: 'HTML',
-                ...Markup.inlineKeyboard([
-                    [Markup.button.callback('⬅️ Назад', 'rep_menu')],
-                    [Markup.button.callback('❌ Закрыть', 'cancel_wiz')]
-                ])
-            });
-            ctx.session.lastSystemMessageId = msg.message_id;
+            await this.safeEditOrReply(ctx, text, Markup.inlineKeyboard([
+                [Markup.button.callback('⬅️ Назад', 'rep_menu')],
+                [Markup.button.callback('❌ Закрыть', 'cancel_wiz')]
+            ])
+            );
         } catch (error) {
             logger.error('Period report error', { error });
             await ctx.reply('❌ Ошибка при формировании отчета.');
@@ -970,12 +965,7 @@ export class TelegramBotService {
             });
         }
 
-        await this.cleanupActiveWizard(ctx);
-        const msg = await ctx.reply(text, {
-            parse_mode: 'HTML',
-            ...Markup.inlineKeyboard([[Markup.button.callback('⬅️ Назад', 'rep_menu'), Markup.button.callback('❌ Закрыть', 'cancel_wiz')]])
-        });
-        ctx.session.lastSystemMessageId = msg.message_id;
+        await this.safeEditOrReply(ctx, text, Markup.inlineKeyboard([[Markup.button.callback('⬅️ Назад', 'rep_menu'), Markup.button.callback('❌ Закрыть', 'cancel_wiz')]]));
     }
 
     private async handleProjectReportsList(ctx: MyContext) {
@@ -993,12 +983,7 @@ export class TelegramBotService {
         }
         buttons.push([Markup.button.callback('⬅️ Назад', 'rep_menu'), Markup.button.callback('❌ Закрыть', 'cancel_wiz')]);
 
-        await this.cleanupActiveWizard(ctx);
-        const msg = await ctx.reply('🏗 <b>Выберите объект для отчета:</b>', {
-            parse_mode: 'HTML',
-            ...Markup.inlineKeyboard(buttons)
-        });
-        ctx.session.lastSystemMessageId = msg.message_id;
+        await this.safeEditOrReply(ctx, '🏗 <b>Выберите объект для отчета:</b>', Markup.inlineKeyboard(buttons));
     }
 
     private async handleProjectReport(ctx: MyContext, projectId: string) {
@@ -1021,12 +1006,7 @@ export class TelegramBotService {
             });
         }
 
-        await this.cleanupActiveWizard(ctx);
-        const msg = await ctx.reply(text, {
-            parse_mode: 'HTML',
-            ...Markup.inlineKeyboard([[Markup.button.callback('⬅️ Назад', 'rep_projects'), Markup.button.callback('❌ Закрыть', 'cancel_wiz')]])
-        });
-        ctx.session.lastSystemMessageId = msg.message_id;
+        await this.safeEditOrReply(ctx, text, Markup.inlineKeyboard([[Markup.button.callback('⬅️ Назад', 'rep_projects'), Markup.button.callback('❌ Закрыть', 'cancel_wiz')]]));
     }
 
     private async handleHelpCommand(ctx: MyContext) {
@@ -1160,7 +1140,7 @@ export class TelegramBotService {
             });
 
             if (txs.length === 0) {
-                await ctx.reply('🕒 История операций пуста.');
+                await this.safeEditOrReply(ctx, '🕒 История операций пуста.');
                 return;
             }
 

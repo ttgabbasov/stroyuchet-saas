@@ -74,6 +74,9 @@ model Company {
   maxUsers        Int?
   maxMoneySources Int?
   
+  // Срок действия платного тарифа
+  planExpiresAt   DateTime?
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   

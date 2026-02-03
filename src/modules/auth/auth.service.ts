@@ -100,6 +100,7 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
   const payload: JWTPayload = {
     userId: result.user.id,
     companyId: result.company.id,
+    email: result.user.email,
     role: result.user.role,
     plan: result.company.plan,
   };
@@ -154,6 +155,7 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   const payload: JWTPayload = {
     userId: user.id,
     companyId: user.companyId,
+    email: user.email,
     role: user.role,
     plan: user.company.plan,
   };
@@ -285,6 +287,7 @@ export async function joinCompany(input: JoinCompanyInput): Promise<AuthResult> 
   const payload: JWTPayload = {
     userId: result.id,
     companyId: invite.companyId,
+    email: result.email,
     role: result.role,
     plan: invite.company.plan,
   };
@@ -332,6 +335,7 @@ export async function refreshTokens(refreshToken: string): Promise<AuthTokens> {
   const newPayload: JWTPayload = {
     userId: user.id,
     companyId: user.companyId,
+    email: user.email,
     role: user.role,
     plan: user.company.plan,
   };

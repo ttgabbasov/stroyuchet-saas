@@ -74,18 +74,7 @@ export default function SettingsPage() {
         },
       ],
     },
-    // Admin panel (only for OWNER)
-    ...(user?.role === 'OWNER' ? [{
-      title: 'Администрирование',
-      items: [
-        {
-          icon: UserCog,
-          label: 'Панель администратора',
-          href: '/admin',
-          value: 'Все пользователи',
-        },
-      ],
-    }] : []),
+    // Admin panel is now checked via a separate API call in the component
     {
       title: 'Мобильное приложение',
       items: [

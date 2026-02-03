@@ -11,6 +11,7 @@ import { Role, Plan, TransactionType, ProjectStatus } from '@prisma/client';
 export interface JWTPayload {
   userId: string;
   companyId: string;
+  email: string;
   role: Role;
   plan: Plan;
 }

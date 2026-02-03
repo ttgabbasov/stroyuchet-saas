@@ -230,7 +230,7 @@ export class TelegramBotService {
                 '2. Перейдите в <b>Настройки → Telegram Бот</b>\n' +
                 '3. Нажмите кнопку <b>«Привязать Telegram»</b>\n\n' +
                 'После этого бот автоматически узнает вас и откроет доступ к функциям.',
-                { parse_mode: 'HTML', disable_web_page_preview: true }
+                { parse_mode: 'HTML' }
             );
         });
 

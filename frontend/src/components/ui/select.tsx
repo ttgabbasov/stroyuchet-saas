@@ -32,7 +32,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={selectId}
             className={clsx(
-              'w-full rounded-lg border bg-card text-sm appearance-none pr-10 text-foreground transition-colors',
+              'w-full rounded-lg border bg-card text-sm appearance-none px-3 py-2 pr-10 text-foreground transition-colors',
               'focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500',
               'disabled:bg-muted disabled:text-muted-foreground',
               error

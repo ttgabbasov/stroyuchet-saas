@@ -39,6 +39,37 @@ export default function ReportsPage() {
 
     const { data: projects } = useProjects();
 
+    const setPeriod = (period: 'this_month' | 'last_month' | 'this_quarter' | 'this_year') => {
+        const now = new Date();
+        let start: Date;
+        let end: Date;
+
+        switch (period) {
+            case 'this_month':
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+                end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                break;
+            case 'last_month':
+                start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                end = new Date(now.getFullYear(), now.getMonth(), 0);
+                break;
+            case 'this_quarter':
+                const quarter = Math.floor(now.getMonth() / 3);
+                start = new Date(now.getFullYear(), quarter * 3, 1);
+                end = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
+                break;
+            case 'this_year':
+                start = new Date(now.getFullYear(), 0, 1);
+                end = new Date(now.getFullYear(), 11, 31);
+                break;
+            default:
+                return;
+        }
+
+        setDateFrom(start.toISOString().split('T')[0]);
+        setDateTo(end.toISOString().split('T')[0]);
+    };
+
     const handleReset = () => {
         setProjectId('');
         setDateFrom(defaultFrom.toISOString().split('T')[0]);
@@ -112,32 +143,53 @@ export default function ReportsPage() {
                 {activeTab === 'CASHFLOW' && (
                     <>
                         {/* Filters */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-card p-4 rounded-xl shadow-sm border border-border">
-                            <Select
-                                label="Проект"
-                                value={projectId}
-                                onChange={(e) => setProjectId(e.target.value)}
-                                options={[
-                                    { value: '', label: 'Все проекты' },
-                                    ...(projects?.map(p => ({ value: p.id, label: p.name })) || []),
-                                ]}
-                            />
-                            <Input
-                                type="date"
-                                label="С"
-                                value={dateFrom}
-                                onChange={(e) => setDateFrom(e.target.value)}
-                            />
-                            <Input
-                                type="date"
-                                label="По"
-                                value={dateTo}
-                                onChange={(e) => setDateTo(e.target.value)}
-                            />
-                            <div className="flex items-end">
-                                <Button variant="secondary" className="w-full" onClick={handleReset}>
-                                    Сбросить
+                        <div className="space-y-4 bg-card p-4 rounded-xl shadow-sm border border-border">
+                            <div className="flex flex-wrap gap-2">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => setPeriod('this_month')}
+                                >
+                                    Этот месяц
                                 </Button>
+                                <Button variant="secondary" size="sm" onClick={() => setPeriod('last_month')}>
+                                    Прошлый месяц
+                                </Button>
+                                <Button variant="secondary" size="sm" onClick={() => setPeriod('this_quarter')}>
+                                    Квартал
+                                </Button>
+                                <Button variant="secondary" size="sm" onClick={() => setPeriod('this_year')}>
+                                    Год
+                                </Button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <Select
+                                    label="Проект"
+                                    value={projectId}
+                                    onChange={(e) => setProjectId(e.target.value)}
+                                    options={[
+                                        { value: '', label: 'Все проекты' },
+                                        ...(projects?.map(p => ({ value: p.id, label: p.name })) || []),
+                                    ]}
+                                />
+                                <Input
+                                    type="date"
+                                    label="С"
+                                    value={dateFrom}
+                                    onChange={(e) => setDateFrom(e.target.value)}
+                                />
+                                <Input
+                                    type="date"
+                                    label="По"
+                                    value={dateTo}
+                                    onChange={(e) => setDateTo(e.target.value)}
+                                />
+                                <div className="flex items-end">
+                                    <Button variant="secondary" className="w-full" onClick={handleReset}>
+                                        Сбросить
+                                    </Button>
+                                </div>
                             </div>
                         </div>
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useAuthStore } from '@/store/auth';
 import { apiGet } from '@/lib/api';
+import axios from 'axios';
 
 export default function DashboardGroupLayout({
   children,
@@ -28,14 +29,26 @@ export default function DashboardGroupLayout({
       // Если есть данные пользователя в localStorage, пробуем восстановить сессию
       if (user) {
         try {
-          // Вызов /me триггернет интерцептор на обновление токена (refresh)
+          // Если accessToken пуст (после перезагрузки), пробуем сначала обновить его
+          const currentStore = useAuthStore.getState();
+          if (!currentStore.accessToken) {
+            try {
+              // Прямой вызов refresh через axios (не через инцептор api.ts)
+              const response = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+              if (response.data.success && response.data.data.accessToken) {
+                setAuth(user, currentStore.company || user.companyId as any, response.data.data.accessToken);
+              }
+            } catch (e) {
+              console.warn('Initial refresh attempt failed, trying direct /me');
+            }
+          }
+
+          // Вызов /me для получения актуальных данных (роль, подписка и т.д.)
           const data = await apiGet<any>('/auth/me');
           if (!isMounted) return;
 
           if (data && data.user && data.company) {
             const token = useAuthStore.getState().accessToken;
-            // Если токен не пришел сразу (может быть задержка в интерцепторе), 
-            // даем ему еще один шанс через 100мс
             if (token) {
               setAuth(data.user, data.company, token);
               setIsInitializing(false);

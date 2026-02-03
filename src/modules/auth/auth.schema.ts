@@ -27,7 +27,7 @@ const nameSchema = z
 
 const phoneSchema = z
   .string()
-  .regex(/^\+?[0-9\s\-()]+$/, 'Некорректный номер телефона')
+  .regex(/^\+?[0-9\s\-()]*$/, 'Некорректный номер телефона')
   .optional();
 
 const inviteCodeSchema = z

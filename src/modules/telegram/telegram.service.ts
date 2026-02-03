@@ -11,6 +11,7 @@ import { eventBus, EVENTS } from '../../lib/events.js';
 import axios from 'axios';
 
 interface MyContext extends Context {
+    user?: any;
     session: {
         lastSystemMessageId?: number;
         historyMessageId?: number;
@@ -203,6 +204,30 @@ export class TelegramBotService {
     }
 
     private setupHandlers() {
+        // Global middleware to check for a linked user for protected actions
+        this.bot.use(async (ctx, next) => {
+            const text = (ctx.message as any)?.text || '';
+            const payload = (ctx as any).startPayload;
+
+            // 1. Always allow /start (with/without payload), /help, and help buttons
+            const isPublicCommand = text.startsWith('/start') || text.startsWith('/help');
+            const isPublicButton = text === '🆘 Помощь';
+
+            if (isPublicCommand || isPublicButton || payload) {
+                return next();
+            }
+
+            // 2. Check for linked user for everything else
+            const user = await this.getUser(ctx);
+            if (!user) {
+                return this.replyNotLinked(ctx);
+            }
+
+            // Store user in context to avoid redundant DB calls
+            ctx.user = user;
+            return next();
+        });
+
         // start command
         this.bot.start(async (ctx) => {
             const payload = (ctx as any).startPayload;
@@ -1345,7 +1370,8 @@ export class TelegramBotService {
         }
     }
 
-    private async getUser(ctx: Context) {
+    private async getUser(ctx: MyContext) {
+        if (ctx.user) return ctx.user;
         if (!ctx.from) return null;
         return prisma.user.findUnique({
             where: { telegramId: ctx.from.id.toString() } as any

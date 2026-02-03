@@ -95,14 +95,14 @@ export class RateLimiter {
 // General API rate limiter
 export const apiLimiter = new RateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per window
+  max: 1000, // 100 requests per window
   message: 'Слишком много запросов, попробуйте позже',
 });
 
 // Auth endpoints rate limiter (stricter)
 export const authLimiter = new RateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  max: 1000, // 5 requests per window
   message: 'Слишком много попыток входа, попробуйте через 15 минут',
 });
 

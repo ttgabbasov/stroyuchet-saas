@@ -41,12 +41,17 @@ app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
     const allowed = [env.CORS_ORIGIN, 'https://tgabbasov.store', 'http://localhost:3000'];
+
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowed.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (!origin) return callback(null, true);
+
+    // Allow explicitly listed origins
+    if (allowed.includes(origin)) return callback(null, true);
+
+    // Allow all subdomains of tgabbasov.store
+    if (origin.endsWith('.tgabbasov.store')) return callback(null, true);
+
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }));

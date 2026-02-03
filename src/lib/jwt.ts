@@ -158,6 +158,7 @@ export const REFRESH_TOKEN_COOKIE_OPTIONS = {
   sameSite: 'lax' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/api/auth/refresh',
+  domain: process.env.NODE_ENV === 'production' ? '.tgabbasov.store' : undefined,
 };
 
 /**

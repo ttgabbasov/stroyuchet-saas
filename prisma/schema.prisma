@@ -120,9 +120,28 @@ model User {
   // Получатель выплат (PAYOUT) и подотчёта (ADVANCE)
   receivedPayouts   Transaction[]  @relation("PayoutRecipient")
   
+  // Password reset codes
+  passwordResets    PasswordReset[]
+  
   @@index([companyId])
   @@index([email])
   @@map("users")
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  expiresAt DateTime
+  usedAt    DateTime?
+  
+  createdAt DateTime  @default(now())
+  
+  @@index([code])
+  @@index([userId])
+  @@map("password_resets")
 }
 
 model Project {

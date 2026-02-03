@@ -12,6 +12,8 @@ import {
   refreshTokenSchema,
   changePasswordSchema,
   createInviteSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from './auth.schema';
 import {
   authenticate,
@@ -110,6 +112,28 @@ router.post(
   authenticate,
   validateBody(changePasswordSchema),
   authController.changePassword
+);
+
+/**
+ * POST /api/auth/password/forgot
+ * Восстановление пароля - отправка кода
+ */
+router.post(
+  '/password/forgot',
+  authLimiter.middleware(),
+  validateBody(forgotPasswordSchema),
+  authController.forgotPassword
+);
+
+/**
+ * POST /api/auth/password/reset
+ * Сброс пароля по коду
+ */
+router.post(
+  '/password/reset',
+  authLimiter.middleware(),
+  validateBody(resetPasswordSchema),
+  authController.resetPassword
 );
 
 // ============================================

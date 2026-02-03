@@ -14,6 +14,8 @@ import {
   RefreshTokenInput,
   ChangePasswordInput,
   CreateInviteInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
 } from './auth.schema';
 import { ErrorCodes } from '../../types/api.types';
 import { getRefreshTokenCookieOptions } from '../../lib/jwt';
@@ -425,4 +427,50 @@ function handleAuthError(
   }
 
   next(error);
+}
+
+// ============================================
+// PASSWORD RESET
+// ============================================
+
+/**
+ * POST /api/auth/password/forgot
+ * Восстановление пароля - отправка кода
+ */
+export async function forgotPassword(
+  req: Request<{}, {}, ForgotPasswordInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    await authService.forgotPassword(req.body.email);
+
+    res.json({
+      success: true,
+      message: 'Если email существует, код восстановления отправлен. Проверьте почту.',
+    });
+  } catch (error) {
+    handleAuthError(error, res, next);
+  }
+}
+
+/**
+ * POST /api/auth/password/reset
+ * Сброс пароля по коду
+ */
+export async function resetPassword(
+  req: Request<{}, {}, ResetPasswordInput>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    await authService.resetPassword(req.body.code, req.body.newPassword);
+
+    res.json({
+      success: true,
+      message: 'Пароль успешно изменен',
+    });
+  } catch (error) {
+    handleAuthError(error, res, next);
+  }
 }

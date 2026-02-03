@@ -119,6 +119,12 @@ export default function LoginPage() {
               Регистрация
             </Link>
           </div>
+
+          <div className="mt-2 text-center text-sm">
+            <Link href="/forgot-password" className="text-muted-foreground hover:text-foreground underline transition-colors">
+              Забыли пароль?
+            </Link>
+          </div>
         </Card>
       </div>
     </div>

@@ -526,3 +526,81 @@ async function mapCompanyToResponse(company: {
     },
   };
 }
+
+// ============================================
+// PASSWORD RESET
+// ============================================
+
+/**
+ * Начать процесс восстановления пароля
+ */
+export async function forgotPassword(email: string): Promise<void> {
+  // Ищем пользователя
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+
+  // Даже если пользователь не найден, возвращаем успех (security best practice)
+  if (!user) {
+    console.log(`[FORGOT PASSWORD] User not found: ${email}`);
+    return;
+  }
+
+  // Генерируем код восстановления (6 цифр)
+  const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
+
+  // Сохраняем код в БД
+  await prisma.passwordReset.create({
+    data: {
+      userId: user.id,
+      code: resetCode,
+      expiresAt,
+    },
+  });
+
+  // TODO: Отправить email с кодом
+  // Пока просто логируем
+  console.log(`[FORGOT PASSWORD] Reset code for ${email}: ${resetCode}`);
+  console.log(`[FORGOT PASSWORD] Code expires at: ${expiresAt.toISOString()}`);
+}
+
+/**
+ * Сброс пароля по коду
+ */
+export async function resetPassword(code: string, newPassword: string): Promise<void> {
+  // Ищем код восстановления
+  const resetRecord = await prisma.passwordReset.findUnique({
+    where: { code },
+    include: { user: true },
+  });
+
+  if (!resetRecord) {
+    throw new AuthError(ErrorCodes.NOT_FOUND, 'Неверный код восстановления');
+  }
+
+  if (resetRecord.usedAt) {
+    throw new AuthError(ErrorCodes.INVALID_INPUT, 'Код уже использован');
+  }
+
+  if (resetRecord.expiresAt < new Date()) {
+    throw new AuthError(ErrorCodes.INVALID_INPUT, 'Код истек. Запросите новый');
+  }
+
+  // Хешируем новый пароль
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
+  // Обновляем пароль и помечаем код как использованный
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: resetRecord.userId },
+      data: { passwordHash },
+    }),
+    prisma.passwordReset.update({
+      where: { id: resetRecord.id },
+      data: { usedAt: new Date() },
+    }),
+  ]);
+
+  console.log(`[RESET PASSWORD] Password reset for user ID: ${resetRecord.userId}`);
+}

@@ -154,11 +154,12 @@ function parseExpiresIn(expires: string): number {
 
 export const REFRESH_TOKEN_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
+  // Если это продакшн, но мы фиксим проблемы с прокси, разрешаем secure: false временно для отладки
+  // или если ADMIN_EMAILS прописан (индикатор ручного управления)
+  secure: process.env.NODE_ENV === 'production' && !process.env.ADMIN_EMAILS,
   sameSite: 'lax' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/',
-  // Убираем domain для упрощения (браузер сам выберет текущий хост)
 };
 
 /**

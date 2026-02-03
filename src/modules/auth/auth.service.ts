@@ -493,14 +493,16 @@ function mapUserToResponse(user: {
   role: Role;
   companyId: string;
 }): UserResponse {
-  const { isSuperAdmin } = require('../admin/admin.middleware');
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+  const isSuperAdmin = adminEmails.includes(user.email.toLowerCase());
+
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
     companyId: user.companyId,
-    isSuperAdmin: isSuperAdmin(user.email),
+    isSuperAdmin,
   };
 }
 

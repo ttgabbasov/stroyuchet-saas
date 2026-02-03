@@ -154,11 +154,11 @@ function parseExpiresIn(expires: string): number {
 
 export const REFRESH_TOKEN_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true, // Всегда true, так как используется HTTPS
+  secure: true,
   sameSite: 'lax' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: '/', // Разрешаем доступ со всех путей API
-  domain: process.env.NODE_ENV === 'production' || process.env.ADMIN_EMAILS ? '.tgabbasov.store' : undefined,
+  path: '/',
+  // Убираем domain для упрощения (браузер сам выберет текущий хост)
 };
 
 /**

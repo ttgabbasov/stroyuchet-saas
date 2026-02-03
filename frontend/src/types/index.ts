@@ -24,6 +24,7 @@ export interface User {
   role: Role;
   companyId: string;
   telegramId?: string;
+  isSuperAdmin?: boolean;
 }
 
 export interface Company {

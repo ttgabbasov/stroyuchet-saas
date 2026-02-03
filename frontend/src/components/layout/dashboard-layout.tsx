@@ -12,6 +12,7 @@ import {
   Plus,
   BarChart3,
   LayoutPanelLeft,
+  Shield,
 } from 'lucide-react';
 import { useUser, useCompany } from '@/store/auth';
 import { ThemeToggle } from '../ui';
@@ -44,6 +45,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: '/transactions', icon: Receipt, label: 'Операции' },
     { href: '/money-sources', icon: Wallet, label: 'Кассы' },
     { href: '/settings', icon: Settings, label: 'Настройки' },
+    ...(user?.isSuperAdmin ? [{ href: '/admin', icon: Shield, label: 'Админ' }] : []),
   ];
 
   return (

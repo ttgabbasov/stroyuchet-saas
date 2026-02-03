@@ -493,12 +493,14 @@ function mapUserToResponse(user: {
   role: Role;
   companyId: string;
 }): UserResponse {
+  const { isSuperAdmin } = require('../admin/admin.middleware');
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
     companyId: user.companyId,
+    isSuperAdmin: isSuperAdmin(user.email),
   };
 }
 

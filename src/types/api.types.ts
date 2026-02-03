@@ -153,6 +153,7 @@ export interface UserResponse {
   name: string;
   role: Role;
   companyId: string;
+  isSuperAdmin?: boolean;
 }
 
 export interface CompanyResponse {

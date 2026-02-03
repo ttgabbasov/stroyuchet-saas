@@ -116,7 +116,7 @@ export async function listProjects(
 
   // Получаем балансы для всех объектов одним запросом (исправление N+1)
   const projectIds = projects.map(p => p.id);
-  
+
   // Группируем транзакции по проектам и типам
   const balanceResults = await prisma.transaction.groupBy({
     by: ['projectId', 'type'],
@@ -129,10 +129,10 @@ export async function listProjects(
 
   // Создаём мапу балансов по projectId
   const balanceMap = new Map<string, ProjectBalance>();
-  
+
   for (const result of balanceResults) {
     if (!result.projectId) continue;
-    
+
     if (!balanceMap.has(result.projectId)) {
       balanceMap.set(result.projectId, {
         totalIncomeCents: 0,
@@ -140,7 +140,7 @@ export async function listProjects(
         balanceCents: 0,
       });
     }
-    
+
     const balance = balanceMap.get(result.projectId)!;
     if (result.type === 'INCOME') {
       balance.totalIncomeCents = result._sum.amountCents || 0;
@@ -312,23 +312,101 @@ export async function updateProject(
 // DELETE
 // ============================================
 
+// Импорты
+import { generateCode } from '../../lib/jwt';
+import * as emailService from '../../services/email.service';
+
 /**
- * Удаление объекта
- * Удаляет каскадно: транзакции, доступы, сметы
+ * Шаг 1: Инициализация удаления (отправка кода)
  */
-export async function deleteProject(
+export async function initiateProjectDeletion(
   projectId: string,
-  companyId: string
+  companyId: string,
+  userId: string
 ): Promise<void> {
-  const existing = await prisma.project.findFirst({
+  const project = await prisma.project.findFirst({
     where: { id: projectId, companyId },
   });
 
-  if (!existing) {
+  if (!project) {
     throw new NotFoundError('Объект не найден');
   }
 
-  // Проверяем, есть ли транзакции
+  // Получаем владельца компании, чтобы отправить ему код
+  const owner = await prisma.user.findFirst({
+    where: { companyId, role: 'OWNER' },
+  });
+
+  if (!owner) {
+    throw new NotFoundError('Владелец компании не найден');
+  }
+
+  // Генерируем код (6 цифр)
+  const code = generateCode(6).replace(/-/g, ''); // 6 chars (e.g. A3F9X2)
+
+  // Сохраняем код верификации
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 минут
+
+  await prisma.actionVerification.create({
+    data: {
+      code,
+      action: 'DELETE_PROJECT',
+      payload: { projectId },
+      userId: owner.id,
+      expiresAt,
+    },
+  });
+
+  // Отправляем email
+  await emailService.sendProjectDeletionCode(owner.email, project.name, code);
+}
+
+/**
+ * Шаг 2: Подтверждение удаления
+ */
+export async function confirmProjectDeletion(
+  projectId: string,
+  companyId: string,
+  code: string
+): Promise<void> {
+  // Проверяем существование проекта
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, companyId },
+  });
+
+  if (!project) {
+    throw new NotFoundError('Объект не найден');
+  }
+
+  // Проверяем код
+  const verification = await prisma.actionVerification.findUnique({
+    where: { code },
+  });
+
+  if (!verification) {
+    throw new NotFoundError('Неверный код подтверждения');
+  }
+
+  if (verification.action !== 'DELETE_PROJECT') {
+    throw new Error('Код не для этой операции');
+  }
+
+  if (verification.expiresAt < new Date()) {
+    // Удаляем просроченный код
+    await prisma.actionVerification.delete({ where: { id: verification.id } });
+    throw new Error('Код истёк. Запросите новый.');
+  }
+
+  const payload = verification.payload as { projectId: string };
+  if (payload.projectId !== projectId) {
+    throw new Error('Код для другого объекта');
+  }
+
+  // Удаляем код (он одноразовый)
+  await prisma.actionVerification.delete({ where: { id: verification.id } });
+
+  // Удаляем проект (логика прежняя)
   const transactionCount = await prisma.transaction.count({
     where: { projectId },
   });
@@ -539,7 +617,7 @@ export async function getCompanySummary(companyId: string): Promise<{
   });
 
   const projectIds = projects.map(p => p.id);
-  
+
   // Получаем балансы для всех проектов одним запросом
   const projectBalanceResults = await prisma.transaction.groupBy({
     by: ['projectId', 'type'],
@@ -552,10 +630,10 @@ export async function getCompanySummary(companyId: string): Promise<{
 
   // Создаём мапу балансов
   const projectBalanceMap = new Map<string, number>();
-  
+
   for (const result of projectBalanceResults) {
     if (!result.projectId) continue;
-    
+
     const currentBalance = projectBalanceMap.get(result.projectId) || 0;
     if (result.type === 'INCOME') {
       projectBalanceMap.set(

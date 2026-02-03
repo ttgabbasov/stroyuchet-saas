@@ -25,7 +25,7 @@ function handleProjectError(error: unknown, res: Response, next: NextFunction): 
     });
     return;
   }
-  
+
   if (error instanceof PlanLimitExceededError) {
     res.status(403).json({
       success: false,
@@ -33,7 +33,7 @@ function handleProjectError(error: unknown, res: Response, next: NextFunction): 
     });
     return;
   }
-  
+
   next(error);
 }
 
@@ -227,10 +227,10 @@ export async function update(
 // ============================================
 
 /**
- * DELETE /api/projects/:id
- * Удаление объекта (или архивирование, если есть транзакции)
+ * POST /api/projects/:id/delete/init
+ * Шаг 1: Отправка кода подтверждения на удаление
  */
-export async function remove(
+export async function initiateDelete(
   req: Request<{ id: string }>,
   res: Response,
   next: NextFunction
@@ -244,11 +244,44 @@ export async function remove(
       return;
     }
 
-    await projectsService.deleteProject(req.params.id, req.user.companyId);
+    await projectsService.initiateProjectDeletion(req.params.id, req.user.companyId, req.user.userId);
 
     res.json({
       success: true,
-      data: { message: 'Объект удалён' },
+      data: { message: 'Код подтверждения отправлен на email владельца компании' },
+    });
+  } catch (error) {
+    handleProjectError(error, res, next);
+  }
+}
+
+/**
+ * DELETE /api/projects/:id/delete/confirm
+ * Шаг 2: Удаление с кодом подтверждения
+ */
+export async function confirmDelete(
+  req: Request<{ id: string }, {}, { code: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        error: { code: ErrorCodes.UNAUTHORIZED, message: 'Не авторизован' },
+      });
+      return;
+    }
+
+    await projectsService.confirmProjectDeletion(
+      req.params.id,
+      req.user.companyId,
+      req.body.code
+    );
+
+    res.json({
+      success: true,
+      data: { message: 'Объект успешно удалён' },
     });
   } catch (error) {
     handleProjectError(error, res, next);

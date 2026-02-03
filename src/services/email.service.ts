@@ -40,5 +40,20 @@ export async function sendPasswordResetEmail(to: string, code: string) {
       <p style="color: #6B7280; font-size: 14px;">Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.</p>
     </div>
   `;
-    return sendEmail(to, subject, html);
-}
+
+    export async function sendProjectDeletionCode(to: string, projectName: string, code: string) {
+        const subject = `Код подтверждения удаления объекта - СтройУчёт`;
+        const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #DC2626;">Подтверждение удаления</h2>
+      <p>Был получен запрос на удаление объекта <b>"${projectName}"</b>.</p>
+      <p>Для подтверждения удаления введите этот код:</p>
+      <div style="background-color: #FEF2F2; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; border: 1px solid #FECACA;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #DC2626;">${code}</span>
+      </div>
+      <p>Код действителен в течение 10 минут.</p>
+      <p style="color: #6B7280; font-size: 14px;">Если вы не инициировали это действие, срочно смените пароль.</p>
+    </div>
+  `;
+        return sendEmail(to, subject, html);
+    }

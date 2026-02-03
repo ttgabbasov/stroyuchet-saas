@@ -119,6 +119,24 @@ export function useDeleteProject() {
   });
 }
 
+export function useInitiateDeleteProject() {
+  return useMutation({
+    mutationFn: (id: string) => apiPost(`/projects/${id}/delete/init`),
+  });
+}
+
+export function useConfirmDeleteProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, code }: { id: string; code: string }) =>
+      apiDelete(`/projects/${id}/delete/confirm`, { data: { code } } as any),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+}
+
 // ============================================
 // MONEY SOURCES
 // ============================================

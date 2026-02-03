@@ -455,3 +455,23 @@ model HelpItem {
 
   @@map("help_items")
 }
+
+// ============================================
+// SECURITY / VERIFICATION
+// ============================================
+
+model ActionVerification {
+  id        String   @id @default(cuid())
+  code      String   @unique // 6-digit code
+  
+  action    String   // e.g. "DELETE_PROJECT"
+  payload   Json     // e.g. { projectId: "..." }
+  
+  // Кто должен подтвердить (опционально)
+  userId    String?
+  
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("action_verifications")
+}

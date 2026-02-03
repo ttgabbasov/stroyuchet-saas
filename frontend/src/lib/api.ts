@@ -104,10 +104,30 @@ export interface ApiResponse<T> {
 
 // Helper to extract error message
 function handleApiError(error: any): never {
-  if (axios.isAxiosError(error) && error.response?.data?.error?.message) {
-    throw new Error(error.response.data.error.message);
+  if (axios.isAxiosError(error)) {
+    // 1. Ошибки от бэкенда (наши кастомные)
+    if (error.response?.data?.error?.message) {
+      throw new Error(error.response.data.error.message);
+    }
+
+    // 2. Ошибки инфраструктуры (Nginx, Network Error)
+    if (error.response) {
+      const status = error.response.status;
+      if (status === 502) throw new Error('Сервер перезагружается или временно недоступен. Попробуйте через минуту.');
+      if (status === 503) throw new Error('Технические работы. Попробуйте позже.');
+      if (status === 504) throw new Error('Время ожидания ответа истекло. Попробуйте еще раз.');
+      if (status === 500) throw new Error('Внутренняя ошибка сервера. Мы уже работаем над этим.');
+      if (status === 404) throw new Error('Запрашиваемый ресурс не найден.');
+      if (status === 403) throw new Error('Доступ запрещен.');
+      if (status === 429) throw new Error('Слишком много запросов. Подождите немного.');
+    } else if (error.request) {
+      // Запрос ушёл, но ответа нет (нет интернета)
+      throw new Error('Нет соединения с сервером. Проверьте интернет.');
+    }
   }
-  throw error;
+
+  // Пробрасываем оригинальную, если не распознали
+  throw error instanceof Error ? error : new Error('Неизвестная ошибка');
 }
 
 export async function apiGet<T>(url: string, params?: Record<string, any>): Promise<T> {
@@ -146,9 +166,9 @@ export async function apiPatch<T>(url: string, body?: any): Promise<T> {
   }
 }
 
-export async function apiDelete<T = void>(url: string): Promise<T> {
+export async function apiDelete<T = void>(url: string, config?: any): Promise<T> {
   try {
-    const { data } = await api.delete<ApiResponse<T>>(url);
+    const { data } = await api.delete<ApiResponse<T>>(url, config);
     if (!data.success) {
       throw new Error(data.error?.message || 'Request failed');
     }

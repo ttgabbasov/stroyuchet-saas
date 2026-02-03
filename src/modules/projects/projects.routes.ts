@@ -94,13 +94,20 @@ router.patch(
 );
 
 /**
- * DELETE /api/projects/:id
- * Удаление объекта (только OWNER)
+ * DELETE /api/projects/:id (DEPRECATED -> use delete/init)
+ * POST /api/projects/:id/delete/init - Request code
+ * DELETE /api/projects/:id/delete/confirm - Confirm with code
  */
-router.delete(
-  '/:id',
+router.post(
+  '/:id/delete/init',
   requireRole('OWNER'),
-  projectsController.remove
+  projectsController.initiateDelete
+);
+
+router.delete(
+  '/:id/delete/confirm',
+  requireRole('OWNER'),
+  projectsController.confirmDelete
 );
 
 // ============================================

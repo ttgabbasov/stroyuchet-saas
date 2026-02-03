@@ -20,7 +20,7 @@ router.use(authenticate, requireSuperAdmin);
  */
 router.get('/me', async (req, res) => {
     // Если дошли до этого handler, значит пользователь - супер-админ
-    return res.json({
+    res.json({
         success: true,
         data: {
             isSuperAdmin: true,
@@ -33,11 +33,11 @@ router.get('/me', async (req, res) => {
  * GET /api/admin/users
  * Получить список всех пользователей с их тарифами и компаниями
  */
-router.get('/users', async (req, res, next) => {
+router.get('/users', async (_req, res, next) => {
     try {
         const users = await adminService.getAllUsers();
 
-        return res.json({
+        res.json({
             success: true,
             data: users,
         });
@@ -50,11 +50,11 @@ router.get('/users', async (req, res, next) => {
  * GET /api/admin/stats
  * Получить общую статистику по всем компаниям
  */
-router.get('/stats', async (req, res, next) => {
+router.get('/stats', async (_req, res, next) => {
     try {
         const stats = await adminService.getStats();
 
-        return res.json({
+        res.json({
             success: true,
             data: stats,
         });
@@ -73,7 +73,7 @@ router.patch('/companies/:id/plan', async (req, res, next) => {
 
         const company = await adminService.updateCompanyPlan(req.params.id, plan, expiresAt);
 
-        return res.json({
+        res.json({
             success: true,
             data: company,
         });
@@ -90,7 +90,7 @@ router.delete('/users/:id', async (req, res, next) => {
     try {
         await adminService.deleteUser(req.params.id);
 
-        return res.json({
+        res.json({
             success: true,
             message: 'Пользователь удален',
         });
@@ -107,7 +107,7 @@ router.delete('/companies/:id', async (req, res, next) => {
     try {
         await adminService.deleteCompany(req.params.id);
 
-        return res.json({
+        res.json({
             success: true,
             message: 'Компания удалена',
         });
@@ -125,7 +125,7 @@ router.get('/activity', async (req, res, next) => {
         const limit = parseInt(req.query.limit as string) || 50;
         const activity = await adminService.getRecentActivity(limit);
 
-        return res.json({
+        res.json({
             success: true,
             data: activity,
         });

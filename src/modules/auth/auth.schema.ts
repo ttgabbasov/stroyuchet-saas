@@ -76,7 +76,7 @@ export const joinCompanySchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   name: nameSchema,
-  phone: phoneSchema,
+  phone: phoneSchema.optional(),
 });
 
 export type JoinCompanyInput = z.infer<typeof joinCompanySchema>;

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Lock, User, Building2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Building2, CheckCircle2, AlertCircle, Loader2, Phone } from 'lucide-react';
 import { Button, Input, Card } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { apiGet, apiPost } from '@/lib/api';
@@ -20,6 +20,7 @@ const joinSchema = z.object({
     name: z.string().min(2, 'Минимум 2 символа'),
     email: z.string().email('Введите корректный email'),
     password: z.string().min(6, 'Минимум 6 символов'),
+    phone: z.string().regex(/^\+?[0-9\s\-()]+$/, 'Некорректный номер телефона').optional(),
 });
 
 type JoinForm = z.infer<typeof joinSchema>;
@@ -144,6 +145,15 @@ function JoinPageContent() {
                             leftIcon={<Mail className="w-4 h-4" />}
                             error={errors.email?.message}
                             {...register('email')}
+                        />
+
+                        <Input
+                            label="Телефон (необязательно)"
+                            type="tel"
+                            placeholder="+7 (900) 123-45-67"
+                            leftIcon={<Phone className="w-4 h-4" />}
+                            error={errors.phone?.message}
+                            {...register('phone')}
                         />
 
                         <Input

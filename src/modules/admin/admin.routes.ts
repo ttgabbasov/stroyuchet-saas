@@ -29,7 +29,7 @@ router.get('/users', authenticate, async (req, res, next) => {
 
         const users = await adminService.getAllUsers();
 
-        res.json({
+        return res.json({
             success: true,
             data: users,
         });

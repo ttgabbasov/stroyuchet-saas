@@ -10,7 +10,8 @@ import { prisma } from '../../lib/prisma';
  * Получить список всех пользователей с их тарифами и компаниями
  */
 export async function getAllUsers() {
-    const users = await prisma.user.findMany({
+    // Получаем всех пользователей с компаниями
+    const usersWithCompanies = await prisma.user.findMany({
         select: {
             id: true,
             name: true,
@@ -18,60 +19,68 @@ export async function getAllUsers() {
             phone: true,
             role: true,
             createdAt: true,
-            company: {
-                select: {
-                    id: true,
-                    name: true,
-                    plan: true,
-                    planExpiresAt: true,
-                    createdAt: true,
-                },
-            },
+            companyId: true,
         },
         orderBy: {
             createdAt: 'desc',
         },
     });
 
-    // Получаем счетчики отдельно
-    const companiesWithCounts = await Promise.all(
-        users.map(async user => {
-            if (!user.company) return null;
+    // Получаем уникальные ID компаний
+    const companyIds = [...new Set(usersWithCompanies.map(u => u.companyId))];
 
+    // Получаем информацию о компаниях
+    const companies = await prisma.company.findMany({
+        where: {
+            id: { in: companyIds },
+        },
+        select: {
+            id: true,
+            name: true,
+            plan: true,
+            planExpiresAt: true,
+            createdAt: true,
+        },
+    });
+
+    // Получаем счетчики для каждой компании
+    const companiesWithCounts = await Promise.all(
+        companies.map(async (company) => {
             const [usersCount, projectsCount] = await Promise.all([
-                prisma.user.count({ where: { companyId: user.company.id } }),
-                prisma.project.count({ where: { companyId: user.company.id } }),
+                prisma.user.count({ where: { companyId: company.id } }),
+                prisma.project.count({ where: { companyId: company.id } }),
             ]);
 
             return {
-                companyId: user.company.id,
+                ...company,
                 usersCount,
                 projectsCount,
             };
         })
     );
 
-    const countsMap = new Map(
-        companiesWithCounts
-            .filter((c): c is NonNullable<typeof c> => c !== null)
-            .map(c => [c.companyId, c])
-    );
+    const companiesMap = new Map(companiesWithCounts.map(c => [c.id, c]));
 
-    return users.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        role: user.role,
-        createdAt: user.createdAt.toISOString(),
-        company: user.company ? {
-            id: user.company.id,
-            name: user.company.name,
-            plan: user.company.plan,
-            planExpiresAt: user.company.planExpiresAt?.toISOString() || null,
-            createdAt: user.company.createdAt.toISOString(),
-            usersCount: countsMap.get(user.company.id)?.usersCount || 0,
-            projectsCount: countsMap.get(user.company.id)?.projectsCount || 0,
-        } : null,
-    }));
+    // Форматируем результат
+    return usersWithCompanies.map(user => {
+        const company = companiesMap.get(user.companyId);
+
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone || '',
+            role: user.role,
+            createdAt: user.createdAt.toISOString(),
+            company: company ? {
+                id: company.id,
+                name: company.name,
+                plan: company.plan,
+                planExpiresAt: company.planExpiresAt?.toISOString() || null,
+                createdAt: company.createdAt.toISOString(),
+                usersCount: company.usersCount,
+                projectsCount: company.projectsCount,
+            } : null,
+        };
+    });
 }

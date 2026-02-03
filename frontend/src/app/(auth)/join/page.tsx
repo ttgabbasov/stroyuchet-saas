@@ -20,7 +20,7 @@ const joinSchema = z.object({
     name: z.string().min(2, 'Минимум 2 символа'),
     email: z.string().email('Введите корректный email'),
     password: z.string().min(6, 'Минимум 6 символов'),
-    phone: z.string().regex(/^\+?[0-9\s\-()]+$/, 'Некорректный номер телефона').optional(),
+    phone: z.string().regex(/^\+?[0-9\s\-()]*$/, 'Некорректный номер телефона').optional(),
 });
 
 type JoinForm = z.infer<typeof joinSchema>;

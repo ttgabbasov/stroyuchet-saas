@@ -16,6 +16,8 @@ export default function DashboardGroupLayout({
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       // Если уже авторизован, ничего не делаем
       if (isAuthenticated) {
@@ -28,14 +30,25 @@ export default function DashboardGroupLayout({
         try {
           // Вызов /me триггернет интерцептор на обновление токена (refresh)
           const data = await apiGet<any>('/auth/me');
-          if (data.user && data.company) {
-            // Токен успешно обновлен интерцептором, сохраняем в стор
-            // (accessToken берется из замыкания стора после инцептора)
+          if (!isMounted) return;
+
+          if (data && data.user && data.company) {
             const token = useAuthStore.getState().accessToken;
+            // Если токен не пришел сразу (может быть задержка в интерцепторе), 
+            // даем ему еще один шанс через 100мс
             if (token) {
               setAuth(data.user, data.company, token);
               setIsInitializing(false);
               return;
+            } else {
+              // Ждем чуть-чуть обновления стора из интерцептора
+              await new Promise(resolve => setTimeout(resolve, 200));
+              const lateToken = useAuthStore.getState().accessToken;
+              if (lateToken) {
+                setAuth(data.user, data.company, lateToken);
+                setIsInitializing(false);
+                return;
+              }
             }
           }
         } catch (error) {
@@ -44,11 +57,14 @@ export default function DashboardGroupLayout({
       }
 
       // Если восстановление не удалось
-      setIsInitializing(false);
-      router.push('/login');
+      if (isMounted) {
+        setIsInitializing(false);
+        router.push('/login');
+      }
     };
 
     checkAuth();
+    return () => { isMounted = false; };
   }, [isAuthenticated, user, setAuth, router]);
 
   if (isInitializing) {

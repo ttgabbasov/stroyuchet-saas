@@ -244,7 +244,7 @@ export async function initiateDelete(
       return;
     }
 
-    await projectsService.initiateProjectDeletion(req.params.id, req.user.companyId, req.user.userId);
+    await projectsService.initiateProjectDeletion(req.params.id, req.user.companyId);
 
     res.json({
       success: true,

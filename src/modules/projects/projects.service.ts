@@ -321,8 +321,7 @@ import * as emailService from '../../services/email.service';
  */
 export async function initiateProjectDeletion(
   projectId: string,
-  companyId: string,
-  userId: string
+  companyId: string
 ): Promise<void> {
   const project = await prisma.project.findFirst({
     where: { id: projectId, companyId },
